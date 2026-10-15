@@ -258,7 +258,7 @@ class AdvancedPackCoreClass extends Module
         if (empty($response)) {
             return false;
         }
-        $responseToJson = Tools::jsonDecode($response);
+        $responseToJson = json_decode($response);
         if (empty($responseToJson)) {
             return false;
         }
@@ -269,7 +269,7 @@ class AdvancedPackCoreClass extends Module
         $modules = Configuration::get('PM_' . self::$_module_prefix  . '_AM');
         $modules_date = Configuration::get('PM_' . self::$_module_prefix  . '_AMD');
         if ($modules && strtotime('+2 day', $modules_date) > time()) {
-            return Tools::jsonDecode($modules, true);
+            return json_decode($modules, true);
         }
         $jsonResponse = $this->doHttpRequest();
         if (empty($jsonResponse->products)) {
@@ -286,24 +286,24 @@ class AdvancedPackCoreClass extends Module
                 'description' => $addonsEntry->description,
             );
         }
-        Configuration::updateValue('PM_' . self::$_module_prefix  . '_AM', Tools::jsonEncode($dataToStore));
+        Configuration::updateValue('PM_' . self::$_module_prefix  . '_AM', json_encode($dataToStore));
         Configuration::updateValue('PM_' . self::$_module_prefix  . '_AMD', time());
-        return Tools::jsonDecode(Configuration::get('PM_' . self::$_module_prefix  . '_AM'), true);
+        return json_decode(Configuration::get('PM_' . self::$_module_prefix  . '_AM'), true);
     }
     protected function getPMModulesFromApi()
     {
         $modules = Configuration::get('PM_' . self::$_module_prefix  . '_PMM');
         $modules_date = Configuration::get('PM_' . self::$_module_prefix  . '_PMMD');
         if ($modules && strtotime('+2 day', $modules_date) > time()) {
-            return Tools::jsonDecode($modules, true);
+            return json_decode($modules, true);
         }
         $jsonResponse = $this->doHttpRequest(array('list' => $this->getPMAddons()), 'presta-module', 'api-addons');
         if (empty($jsonResponse)) {
             return array();
         }
-        Configuration::updateValue('PM_' . self::$_module_prefix  . '_PMM', Tools::jsonEncode($jsonResponse));
+        Configuration::updateValue('PM_' . self::$_module_prefix  . '_PMM', json_encode($jsonResponse));
         Configuration::updateValue('PM_' . self::$_module_prefix  . '_PMMD', time());
-        return Tools::jsonDecode(Configuration::get('PM_' . self::$_module_prefix  . '_PMM'), true);
+        return json_decode(Configuration::get('PM_' . self::$_module_prefix  . '_PMM'), true);
     }
     protected function shuffleArray(&$a)
     {
@@ -364,7 +364,7 @@ class AdvancedPackCoreClass extends Module
     {
         $conf = Configuration::get('PM_' . self::$_module_prefix . '_CONF');
         if (!empty($conf)) {
-            $config = Tools::jsonDecode($conf, true);
+            $config = json_decode($conf, true);
             foreach ($this->_defaultConfiguration as $configKey => $configValue) {
                 if (!isset($config[$configKey])) {
                     $config[$configKey] = $configValue;
@@ -379,19 +379,19 @@ class AdvancedPackCoreClass extends Module
     {
         $conf = Configuration::get('PM_' . self::$_module_prefix . '_CONF');
         if (!empty($conf)) {
-            return Tools::jsonDecode($conf, true);
+            return json_decode($conf, true);
         } else {
             return array();
         }
     }
     protected function _setModuleConfiguration($newConf)
     {
-        Configuration::updateValue('PM_' . self::$_module_prefix . '_CONF', Tools::jsonEncode($newConf));
+        Configuration::updateValue('PM_' . self::$_module_prefix . '_CONF', json_encode($newConf));
     }
     protected function _setDefaultConfiguration()
     {
         if (!is_array($this->_getModuleConfiguration()) || !sizeof($this->_getModuleConfiguration())) {
-            Configuration::updateValue('PM_' . self::$_module_prefix . '_CONF', Tools::jsonEncode($this->_defaultConfiguration));
+            Configuration::updateValue('PM_' . self::$_module_prefix . '_CONF', json_encode($this->_defaultConfiguration));
         }
         return true;
     }

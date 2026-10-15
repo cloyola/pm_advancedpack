@@ -20,4 +20,4 @@ if (php_sapi_name() != 'cli') {
 }
 include(dirname(__FILE__).'/../../../../config/config.inc.php');
 $module = Module::getInstanceByName('pm_advancedpack');
-die(Tools::jsonEncode($module->runCron(), JSON_PRETTY_PRINT));
+die(json_encode($module->runCron(), JSON_PRETTY_PRINT));

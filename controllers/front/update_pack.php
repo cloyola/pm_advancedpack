@@ -172,15 +172,15 @@ class pm_advancedpackupdate_packModuleFrontController extends ModuleFrontControl
                 $this->jsonOutput['packFatalErrorsList'] = $packFatalErrorsList;
                 $this->jsonOutput['packHasErrors'] = count($packErrorsList) ? true : false;
                 $this->jsonOutput['packHasFatalErrors'] = count($packFatalErrorsList) ? true : false;
-                $this->jsonOutput['packAttributesList'] = (array)Tools::jsonEncode($this->packAttributesList);
+                $this->jsonOutput['packAttributesList'] = (array)json_encode($this->packAttributesList);
                 $this->jsonOutput['productPackExclude'] = (array)$this->productPackExclude;
-                die(Tools::jsonEncode($this->jsonOutput));
+                die(json_encode($this->jsonOutput));
             }
         } else {
             $this->errors[] = $this->module->getFrontTranslation('errorInvalidPack');
         }
         if (count($this->errors)) {
-            die(Tools::jsonEncode(array('hasError' => true, 'errors' => $this->errors)));
+            die(json_encode(array('hasError' => true, 'errors' => $this->errors)));
         }
     }
     public function initContent()

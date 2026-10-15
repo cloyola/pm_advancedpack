@@ -41,7 +41,7 @@ class pm_advancedpackadd_packModuleFrontController extends ModuleFrontController
             $this->quantity = 1;
         }
         $idProductAttributeList = Tools::getValue('id_product_attribute_list');
-        $idProductAttributeList = (array)Tools::jsonDecode($idProductAttributeList);
+        $idProductAttributeList = (array)json_decode($idProductAttributeList);
         if (!is_array($idProductAttributeList)) {
             $this->idProductAttributeList = array();
         } else {

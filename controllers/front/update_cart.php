@@ -43,7 +43,7 @@ class pm_advancedpackupdate_cartModuleFrontController extends ModuleFrontControl
         ob_start();
         $cartController = new CartController();
         $cartController->displayAjax();
-        $this->jsonOutput = (array)Tools::jsonDecode(ob_get_contents(), true);
+        $this->jsonOutput = (array)json_decode(ob_get_contents(), true);
         ob_end_clean();
         if (is_array($this->jsonOutput)) {
             $newCartSummary = $this->context->cart->getSummaryDetails(null, true);
@@ -106,9 +106,9 @@ class pm_advancedpackupdate_cartModuleFrontController extends ModuleFrontControl
             if ($this->hasPackInCart || $this->hasClassicPackInCart) {
                 $this->jsonOutput['summary'] = $newCartSummary;
             }
-            die(Tools::jsonEncode(array('hasError' => false, 'cartData' => $this->jsonOutput)));
+            die(json_encode(array('hasError' => false, 'cartData' => $this->jsonOutput)));
         }
-        die(Tools::jsonEncode(array('hasError' => true)));
+        die(json_encode(array('hasError' => true)));
     }
     public function initContent()
     {

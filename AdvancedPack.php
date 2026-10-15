@@ -168,7 +168,7 @@ class AdvancedPack extends Product
                         }
                         if (isset($packProduct['customization_infos']) && !empty($packProduct['customization_infos'])) {
                             $packProduct['customizationFieldsName'] = array();
-                            $packProduct['customization_infos'] = (array)Tools::jsonDecode($packProduct['customization_infos']);
+                            $packProduct['customization_infos'] = (array)json_decode($packProduct['customization_infos']);
                             $customizationFields = AdvancedPack::getProductPackCustomizationFields((int)$packProduct['id_product']);
                             if (AdvancedPackCoreClass::_isFilledArray($customizationFields)) {
                                 foreach ($customizationFields as $customizationField) {
@@ -2025,7 +2025,7 @@ class AdvancedPack extends Product
                 if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                     http_response_code(500);
                 }
-                die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
+                die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
             } else {
                 $context->controller->errors = $errors;
                 return $customizationError;
@@ -2061,7 +2061,7 @@ class AdvancedPack extends Product
                                 foreach ($packProducts as $packProduct) {
                                     $productPackIdAttribute = (isset($idProductAttributeList[(int)$packProduct['id_product_pack']]) ? $idProductAttributeList[(int)$packProduct['id_product_pack']] : (int)$packProduct['default_id_product_attribute']);
                                     $packCustomizationList = (isset($customizationList[(int)$packProduct['id_product_pack']]) ? $customizationList[(int)$packProduct['id_product_pack']] : null);
-                                    $values[] = '('.(int)$context->cookie->id_cart.', '.(int)$context->shop->id.', '.(int)$idPack.', '.(int)$packProduct['id_product_pack'].', '.(int)$idProductAttribute.', '.(int)$productPackIdAttribute.', "'.pSQL($packUniqueHash).'", ' . (AdvancedPackCoreClass::_isFilledArray($packCustomizationList) ? '"' . pSQL(Tools::jsonEncode($packCustomizationList)) . '"' : 'NULL') . ')';
+                                    $values[] = '('.(int)$context->cookie->id_cart.', '.(int)$context->shop->id.', '.(int)$idPack.', '.(int)$packProduct['id_product_pack'].', '.(int)$idProductAttribute.', '.(int)$productPackIdAttribute.', "'.pSQL($packUniqueHash).'", ' . (AdvancedPackCoreClass::_isFilledArray($packCustomizationList) ? '"' . pSQL(json_encode($packCustomizationList)) . '"' : 'NULL') . ')';
                                 }
                                 if (AdvancedPackCoreClass::_isFilledArray($values)) {
                                     $resPackAdd &= Db::getInstance()->execute('INSERT IGNORE INTO `'._DB_PREFIX_.'pm_advancedpack_cart_products` (`id_cart`, `id_shop`, `id_pack`, `id_product_pack`, `id_product_attribute_pack`, `id_product_attribute`, `unique_hash`, `customization_infos`) VALUES '.implode(',', $values));
@@ -2081,13 +2081,13 @@ class AdvancedPack extends Product
                                             $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
                                         }
                                         if ($die) {
-                                            die(Tools::jsonEncode($jsonCartContent));
+                                            die(json_encode($jsonCartContent));
                                         }
                                     } else {
                                         ob_start();
                                         $cartController = new CartController();
                                         $cartController->displayAjax();
-                                        $jsonCartContent = (array)Tools::jsonDecode(ob_get_contents(), true);
+                                        $jsonCartContent = (array)json_decode(ob_get_contents(), true);
                                         ob_end_clean();
                                         if (is_array($jsonCartContent)) {
                                             $hasPackUsingDifferentVAT = false;
@@ -2135,7 +2135,7 @@ class AdvancedPack extends Product
                                                 }
                                             }
                                             if ($die) {
-                                                die(Tools::jsonEncode($jsonCartContent));
+                                                die(json_encode($jsonCartContent));
                                             }
                                         } else {
                                             $cartController->displayAjax();
@@ -2162,7 +2162,7 @@ class AdvancedPack extends Product
                     if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                         http_response_code(500);
                     }
-                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
+                    die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
                 }
             } else {
                 $context->controller->errors = $errors;
@@ -2237,13 +2237,13 @@ class AdvancedPack extends Product
                         $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
                     }
                     if ($die) {
-                        die(Tools::jsonEncode($jsonCartContent));
+                        die(json_encode($jsonCartContent));
                     }
                 } else {
                     ob_start();
                     $cartController = new CartController();
                     $cartController->displayAjax();
-                    $jsonCartContent = (array)Tools::jsonDecode(ob_get_contents(), true);
+                    $jsonCartContent = (array)json_decode(ob_get_contents(), true);
                     ob_end_clean();
                     if (is_array($jsonCartContent)) {
                         $packCover = Product::getCover($idPack);
@@ -2258,7 +2258,7 @@ class AdvancedPack extends Product
                                 'attributes' => $moduleInstance->displayPackContent($idPack, false, pm_advancedpack::PACK_CONTENT_BLOCK_CART, $packProducts),
                             );
                             if ($die) {
-                                die(Tools::jsonEncode($jsonCartContent));
+                                die(json_encode($jsonCartContent));
                             }
                         }
                     }
@@ -2274,7 +2274,7 @@ class AdvancedPack extends Product
                 if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                     http_response_code(500);
                 }
-                die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
+                die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
             }
             return false;
         }

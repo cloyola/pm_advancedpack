@@ -35,6 +35,6 @@ class pm_advancedpackcronModuleFrontController extends ModuleFrontController
             Tools::redirect('404');
             die;
         }
-        die(Tools::jsonEncode($this->module->runCron()));
+        die(json_encode($this->module->runCron()));
     }
 }

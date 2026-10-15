@@ -381,7 +381,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                     }
                 }
             }
-            die(Tools::jsonEncode(array('idWarehouse' => $idWarehouse, 'warehouseListId' => $warehouseListId)));
+            die(json_encode(array('idWarehouse' => $idWarehouse, 'warehouseListId' => $warehouseListId)));
         } elseif (Tools::getIsset('adminPackContentUpdate') && Tools::getIsset('updatePackPriceSimulation') && Tools::getValue('updatePackPriceSimulation') && Tools::getIsset('productFormValues') && Tools::getValue('productFormValues')) {
             $productFormValues = $packProducts = array();
             parse_str(Tools::getValue('productFormValues'), $productFormValues);
@@ -476,7 +476,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                 'totalFinal' => $packPrice + $totalPackEcoTax,
                 'totalFinalWt' => $packPriceWt + $totalPackEcoTaxWt,
             ));
-            die(Tools::jsonEncode(array('advancedStockManagementAlert' => $advancedStockManagementAlert, 'idTaxRulesGroup' => $finalIdTaxRulesGroup, 'html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-price-simulation.tpl'))));
+            die(json_encode(array('advancedStockManagementAlert' => $advancedStockManagementAlert, 'idTaxRulesGroup' => $finalIdTaxRulesGroup, 'html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-price-simulation.tpl'))));
         } elseif (Tools::getIsset('adminPackContentUpdate') && Tools::getIsset('addPackLine') && Tools::getValue('addPackLine') && Tools::getIsset('productId') && Tools::getValue('productId')) {
             $idProduct = (int)Tools::getValue('productId');
             if (Validate::isUnsignedId($idProduct) && $idProduct > 0) {
@@ -510,7 +510,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                         'defaultCurrency' => Currency::getDefaultCurrency(),
                         'packContent' => $packContent
                     ));
-                    die(Tools::jsonEncode(array('html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-table.tpl'))));
+                    die(json_encode(array('html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-table.tpl'))));
                 }
             }
         } elseif (Tools::getIsset('adminPackContentUpdate') && Tools::getIsset('packContent')) {
@@ -546,7 +546,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                 'defaultCurrency' => Currency::getDefaultCurrency(),
                 'packContent' => $packContent
             ));
-            die(Tools::jsonEncode(array('packContent' => $packContentJSON, 'html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-table.tpl'))));
+            die(json_encode(array('packContent' => $packContentJSON, 'html' => $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/admin-product-tab-pack-table.tpl'))));
         } elseif (Tools::getIsset('adminProductList') && Tools::getIsset('q')) {
             $query = Tools::getValue('q', false);
             if (!$query or $query == '' or Tools::strlen($query) < 1) {
@@ -576,7 +576,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                             'image' => self::getThumbnailImageHTML((int)$item['id_product']),
                         );
                     }
-                    die(Tools::jsonEncode($finalTable));
+                    die(json_encode($finalTable));
                 } else {
                     foreach ($items as $item) {
                         echo str_replace('|', '-', trim($item['name']).(!empty($item['reference']) ? ' (ref: '.$item['reference'].')' : '')).'|'.(int)($item['id_product'])."\n";
@@ -1767,7 +1767,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                     if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                         http_response_code(500);
                     }
-                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->l('This product can only be ordered via a pack')))));
+                    die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->l('This product can only be ordered via a pack')))));
                 } else {
                     if (AdvancedPack::isValidPack($idProduct)) {
                         self::$_preventInfiniteLoop = true;
@@ -1785,7 +1785,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                                     if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                         http_response_code(500);
                                     }
-                                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
+                                    die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
                                 }
                             } else {
                                 if (AdvancedPack::isInStock($idProduct, $newCartQuantityUp, array(), true, $idProductAttribute)) {
@@ -1800,7 +1800,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                                     if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                         http_response_code(500);
                                     }
-                                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
+                                    die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
                                 }
                             }
                         } else {
@@ -1810,7 +1810,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                             if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                 http_response_code(500);
                             }
-                            die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorOutOfStock')))));
+                            die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorOutOfStock')))));
                         }
                         self::$_preventInfiniteLoop = false;
                     } else {
@@ -1832,7 +1832,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                                     if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                         http_response_code(500);
                                     }
-                                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
+                                    die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
                                 }
                             }
                         }
@@ -1850,7 +1850,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                             if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                 http_response_code(500);
                             }
-                            die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
+                            die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
                         }
                     } else {
                         self::$_preventInfiniteLoop = true;
@@ -1861,7 +1861,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                         if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                             http_response_code(500);
                         }
-                        die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorOutOfStock')))));
+                        die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorOutOfStock')))));
                     }
                 } else {
                     if (!Product::isAvailableWhenOutOfStock(StockAvailable::outOfStock((int)$idProduct))) {
@@ -1879,7 +1879,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                                 if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
                                     http_response_code(500);
                                 }
-                                die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
+                                die(json_encode(array('hasError' => true, 'from_AP5' => true, 'errors' => array($this->getFrontTranslation('errorMaximumQuantity')))));
                             }
                         }
                     }
@@ -2508,7 +2508,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                 if (!sizeof($ajaxJsonContent->products)) {
                     $ajaxJsonContent->found = false;
                 }
-                die(Tools::jsonEncode($ajaxJsonContent));
+                die(json_encode($ajaxJsonContent));
             }
         }
         if ($currentIdProduct && version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
@@ -2844,7 +2844,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
                 $packAttributesList = array();
                 $this->context->smarty->assign(array(
                     'ap5_firstExecution' => true,
-                    'ap5_buyBlockPackPriceContainer' => Tools::jsonEncode($this->displayPackPriceContainer((int)$product->id, $packAttributesList))
+                    'ap5_buyBlockPackPriceContainer' => json_encode($this->displayPackPriceContainer((int)$product->id, $packAttributesList))
                 ));
                 $this->_assignSmartyVars('pack', (int)$product->id);
                 return $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/pack-product-list-extra-right.tpl');
@@ -2871,7 +2871,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
             $packAttributesList = array();
             $this->context->smarty->assign(array(
                 'ap5_firstExecution' => true,
-                'ap5_buyBlockPackPriceContainer' => Tools::jsonEncode($this->displayPackPriceContainer((int)$product->id, $packAttributesList))
+                'ap5_buyBlockPackPriceContainer' => json_encode($this->displayPackPriceContainer((int)$product->id, $packAttributesList))
             ));
             $this->_assignSmartyVars('pack', (int)$product->id);
             $return = $this->display(__FILE__, 'views/templates/hook/' . Tools::substr(_PS_VERSION_, 0, 3) . '/pack-product-list-extra-right.tpl');
