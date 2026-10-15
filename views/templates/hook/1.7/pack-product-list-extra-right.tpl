@@ -1,4 +1,4 @@
-		<!-- pack product list-->  
+		<!-- pack product list-->
 		<section id="ap5-product-list" class="ap5-on-product-page ap5-product-list {if $packAvailableQuantity <= 0} ap5-pack-oos{/if}">
 		{assign var=nbPackProducts value=count($productsPack)}
 		{foreach from=$productsPack item=productPack name=productsPackLoop}
@@ -27,7 +27,7 @@
 								<fieldset id="ap5-quantity-wanted-{$productPack.id_product_pack|intval}" class="attribute_fieldset ap5-attribute-fieldset ap5-quantity-fieldset">
 									<label class="attribute_label" for="quantity_wanted_{$productPack.id_product_pack|intval}">{l s='Quantity' d='Shop.Theme.Catalog'} </label>
 									<div class="attribute_list ap5-attribute-list ap5-quantity-input-container">
-										<input type="text" name="qty_{$productPack.id_product_pack|intval}" id="quantity_wanted_{$productPack.id_product_pack|intval}" value="{$productPack.quantity|intval}" class="ap5-quantity-wanted" data-id-product-pack="{$productPack.id_product_pack|intval}" />
+										<input type="text" name="qty_{$productPack.id_product_pack|intval}" id="quantity_wanted_{$productPack.id_product_pack|intval}" value="{$productPack.quantity|intval}" class="ap5-quantity-wanted" data-id-product-pack="{$productPack.id_product_pack|intval}" data-available-quantity="{$packAvailableQuantityList[$productPack.id_product_pack][$productPack.id_product_attribute]|intval}"/>
 										<a href="#" rel="quantity_wanted_{$productPack.id_product_pack|intval}" class="btn btn-default button-minus ap5-product-quantity-down"><span><i class="icon-minus"></i></span></a>
 										<a href="#" rel="quantity_wanted_{$productPack.id_product_pack|intval}" class="btn btn-default button-plus ap5-product-quantity-up"><span><i class="icon-plus"></i></span></a>
 									</div>
@@ -53,6 +53,21 @@
 								{/if}
 							{/if}
 						</div>
+						{/if}
+					</div>
+
+					<div class="ap5-delivery-information">
+						{if $productPack.presentation.additional_delivery_times == 1}
+							{if $productPack.presentation.delivery_information}
+								<span class="delivery-information">{$productPack.presentation.delivery_information}</span>
+							{/if}
+						{elseif $productPack.presentation.additional_delivery_times == 2}
+							{if $productPack.presentation.quantity > 0}
+								<span class="delivery-information">{$productPack.presentation.delivery_in_stock}</span>
+								{* Out of stock message should not be displayed if customer can't order the product. *}
+							{elseif $productPack.presentation.quantity <= 0 && $productPack.presentation.add_to_cart_url}
+								<span class="delivery-information">{$productPack.presentation.delivery_out_stock}</span>
+							{/if}
 						{/if}
 					</div>
 
@@ -84,11 +99,13 @@
 													{foreach from=$group.attributes key=id_attribute item=group_attribute}
 														{assign var=ap5_isCurrentSelectedIdAttribute value=((isset($productsPackErrors[$productPack.id_product_pack]) && isset($packCompleteAttributesList[$productPack.id_product_pack]) && in_array($id_attribute, $packCompleteAttributesList[$productPack.id_product_pack])) || $group.default == $id_attribute)}
 														<li class="float-left float-xs-left pull-xs-left input-container{if $ap5_isCurrentSelectedIdAttribute} selected{/if}">
-															<a href="{$productPack.presentation.url}" data-id-product-pack="{$productPack.id_product_pack|intval}" data-id-attribute-group="{$id_attribute_group|intval}" data-id-attribute="{$id_attribute|intval}" id="color_{$id_attribute|intval}" name="{$productPack.attributes.colors.$id_attribute.name}" class="ap5-color color color_pick{if $ap5_isCurrentSelectedIdAttribute} selected{/if}{if in_array($productPack.id_product_pack, $packExcludeList)} disabled{/if}" style="background: {$productPack.attributes.colors.$id_attribute.value};" title="{$productPack.attributes.colors.$id_attribute.name}">
-																{if $productPack.attributes.colors.$id_attribute.image_exists}
-																	<img src="{$urls.img_col_url}{$id_attribute|intval}.jpg" alt="{$productPack.attributes.colors.$id_attribute.name}" width="20" height="20" />
-																{/if}
-															</a>
+															<label aria-label="{$group_attribute|escape:'html':'UTF-8'}">
+																<a href="{$productPack.presentation.url}" data-id-product-pack="{$productPack.id_product_pack|intval}" data-id-attribute-group="{$id_attribute_group|intval}" data-id-attribute="{$id_attribute|intval}" id="color_{$id_attribute|intval}" name="{$productPack.attributes.colors.$id_attribute.name}" class="ap5-color color color_pick{if $ap5_isCurrentSelectedIdAttribute} selected{/if}{if in_array($productPack.id_product_pack, $packExcludeList)} disabled{/if}" style="background: {$productPack.attributes.colors.$id_attribute.value};" title="{$productPack.attributes.colors.$id_attribute.name}">
+																	{if $productPack.attributes.colors.$id_attribute.image_exists}
+																		<img src="{$urls.img_col_url}{$id_attribute|intval}.jpg" alt="{$productPack.attributes.colors.$id_attribute.name}" width="20" height="20" />
+																	{/if}
+																</a>
+															</label>
 														</li>
 														{if $ap5_isCurrentSelectedIdAttribute}
 															{$default_colorpicker = $id_attribute}
@@ -177,7 +194,7 @@
 				</div>
 
 			</div>
-			
+
 		{/foreach}
 		</section>
 		<!-- end pack product list -->

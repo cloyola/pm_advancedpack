@@ -146,15 +146,19 @@ var ap5Plugin = {
 			min: 1,
 			max: (typeof(jsonData) == 'object' && typeof(jsonData.packAvailableQuantity) != 'undefined' && jsonData.packAvailableQuantity > 0 ? jsonData.packAvailableQuantity : 1000000)
 		});
-		$('.ap5-quantity-wanted').TouchSpin({
-			verticalbuttons: true,
-			verticalupclass: 'material-icons touchspin-up',
-			verticaldownclass: 'material-icons touchspin-down',
-			buttondown_class: 'btn btn-touchspin js-touchspin',
-			buttonup_class: 'btn btn-touchspin js-touchspin',
-			min: 1
+		$('.ap5-quantity-wanted').each(function (index, element) {
+			$(element).TouchSpin({
+				verticalbuttons: true,
+				verticalupclass: 'material-icons touchspin-up',
+				verticaldownclass: 'material-icons touchspin-down',
+				buttondown_class: 'btn btn-touchspin js-touchspin',
+				buttonup_class: 'btn btn-touchspin js-touchspin',
+				min: 1,
+				max: $(element).data('available-quantity') || 10000
+			});
 		});
 		$('[data-button-action="add-to-cart"]').attr('data-button-action', 'add-pack-to-cart');
+		$('.product-add-to-cart .js-add-to-cart').removeClass('js-add-to-cart');
 
 		// $('div.ap5-pack-product-image a.fancybox, div.ap5-pack-product-slideshow a.fancybox').fancybox();
 		$("div.ap5-pack-product-slideshow:not(.no-carousel)").pmAPOwlCarousel({
@@ -448,6 +452,11 @@ $(document).on('keyup', 'input[name=qty], input.ap5-quantity-wanted', function(e
 });
 // Quantity change trigger for pack product
 $(document).on('change', 'input.ap5-quantity-wanted', function(e){
+	// Prevent wanted quantity to be > available quantity
+	if ($(this).data('available-quantity') && $(this).val() > $(this).data('available-quantity')) {
+		e.preventDefault();
+		$(this).val(parseInt($(this).data('available-quantity')));
+	}
 	ap5Plugin.updatePackTable();
 });
 
@@ -494,11 +503,12 @@ $(document).ready(function() {
 	// Add classes to body
 	$('body').addClass('ap5-pack-page');
 	$('[data-button-action="add-to-cart"]').attr('data-button-action', 'add-pack-to-cart');
+	$('.product-add-to-cart .js-add-to-cart').removeClass('js-add-to-cart');
 	// Remove events associated to updateProduct
 	prestashop.removeAllListeners('updateProduct');
 });
 
-$(window).load(function() {
+$(window).on('load', function () {
 	ap5Plugin.initNewContent();
 
 	buyBlock = $('form.ap5-buy-block');
@@ -513,7 +523,7 @@ $(window).load(function() {
 			return;
 		}
 		ap5Plugin.topLimit = buyBlock.offset().top + parseFloat(buyBlock.css('marginTop').replace(/auto/, 0));
-		$(window).scroll(function() {
+		$(window).on('scroll', function () {
 			ap5_windowWidth = (navigator.userAgent.indexOf('Macintosh') > -1 && navigator.userAgent.indexOf('Safari/') > -1 ? $(window).width() : window.innerWidth);
 			var ap5_scrollTop = $(window).scrollTop();
 			var ap5_originalTop = parseFloat(buyBlock.css('top'));
@@ -560,7 +570,7 @@ $(window).load(function() {
 		$(window).trigger('scroll');
 	}
 
-	$(window).resize(function() {
+	$(window).on('resize', function () {
 		if (ap5Plugin.autoScrollBuyBlockEnabled) {
 			ap5_formOffset = $('form.ap5-buy-block').offset();
 			if (typeof(ap5_formOffset) == 'object') {

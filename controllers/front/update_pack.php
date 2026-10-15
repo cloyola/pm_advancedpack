@@ -2,8 +2,8 @@
 /**
  * Advanced Pack 5
  *
- * @author    Presta-Module.com <support@presta-module.com> - http://www.presta-module.com
- * @copyright Presta-Module 2019 - http://www.presta-module.com
+ * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
+ * @copyright Presta-Module - https://www.presta-module.com
  * @license   Commercial
  *
  *           ____     __  __
@@ -36,6 +36,9 @@ class pm_advancedpackupdate_packModuleFrontController extends ModuleFrontControl
         header('X-Robots-Tag: noindex, nofollow', true);
         $this->ajax = true;
         $this->idPack = (int)Tools::getValue('id_pack');
+        if (Tools::getIsset('productPackExclude')) {
+            $this->productPackExclude = array_unique(array_map('intval', (array)Tools::getValue('productPackExclude')));
+        }
         if (Tools::getIsset('productPackChoice')) {
             $tmp_productPackChoice = (array)Tools::getValue('productPackChoice');
             if (is_array($tmp_productPackChoice) && count($tmp_productPackChoice)) {
@@ -47,9 +50,16 @@ class pm_advancedpackupdate_packModuleFrontController extends ModuleFrontControl
             if (!count($this->productPackChoice)) {
                 $this->errors[] = $this->module->getFrontTranslation('errorInvalidPackChoice');
             }
-        }
-        if (Tools::getIsset('productPackExclude')) {
-            $this->productPackExclude = array_unique(array_map('intval', (array)Tools::getValue('productPackExclude')));
+            $this->packAttributesList = array();
+            foreach ($this->productPackChoice as $idProductPack => $attributeList) {
+                if (in_array($idProductPack, $this->productPackExclude)) {
+                    continue;
+                }
+                $idProductAttribute = AdvancedPack::combinationExists((int)$idProductPack, $attributeList);
+                if ($idProductAttribute !== false) {
+                    $this->packAttributesList[(int)$idProductPack] = (int)$idProductAttribute;
+                }
+            }
         }
         if (Tools::getIsset('productPackQuantityList')) {
             $tmp_productPackQuantityList = (array)Tools::getValue('productPackQuantityList');
@@ -118,14 +128,26 @@ class pm_advancedpackupdate_packModuleFrontController extends ModuleFrontControl
                 if (count($this->productPackQuantityList)) {
                     $packQuantityOriginalList = AdvancedPack::getPackAvailableQuantityList($this->idPack, $this->packAttributesList);
                 }
-                foreach ($this->packAttributesList as $idProductPack => $idProductAttribute) {
-                    if (isset($packQuantityList[(int)$idProductPack]) && array_sum($packQuantityList[(int)(int)$idProductPack]) <= 0) {
-                        if (count($this->productPackQuantityList) && isset($packQuantityOriginalList[(int)$idProductPack]) && array_sum($packQuantityOriginalList[(int)(int)$idProductPack]) <= 0) {
+                foreach ($packQuantityList as $idProductPack => $remainingQuantities) {
+                    if (count($remainingQuantities) > 1) {
+                        continue;
+                    }
+                    if (isset($packQuantityList[(int)$idProductPack]) && array_sum($packQuantityList[(int)$idProductPack]) <= 0) {
+                        if (count($this->productPackQuantityList) && isset($packQuantityOriginalList[(int)$idProductPack]) && array_sum($packQuantityOriginalList[(int)$idProductPack]) <= 0) {
                             $packFatalErrorsList[(int)$idProductPack][] = $this->module->getFrontTranslation('errorProductIsOutOfStock');
                         } else {
                             $packErrorsList[(int)$idProductPack][] = $this->module->getFrontTranslation('errorProductIsOutOfStock');
                         }
-                    } elseif (isset($packQuantityList[(int)$idProductPack][$idProductAttribute]) && $packQuantityList[(int)(int)$idProductPack][$idProductAttribute] <= 0) {
+                    }
+                }
+                foreach ($this->packAttributesList as $idProductPack => $idProductAttribute) {
+                    if (isset($packQuantityList[(int)$idProductPack]) && array_sum($packQuantityList[(int)$idProductPack]) <= 0) {
+                        if (count($this->productPackQuantityList) && isset($packQuantityOriginalList[(int)$idProductPack]) && array_sum($packQuantityOriginalList[(int)$idProductPack]) <= 0) {
+                            $packFatalErrorsList[(int)$idProductPack][] = $this->module->getFrontTranslation('errorProductIsOutOfStock');
+                        } else {
+                            $packErrorsList[(int)$idProductPack][] = $this->module->getFrontTranslation('errorProductIsOutOfStock');
+                        }
+                    } elseif (isset($packQuantityList[(int)$idProductPack][$idProductAttribute]) && $packQuantityList[(int)$idProductPack][$idProductAttribute] <= 0) {
                         $packErrorsList[(int)$idProductPack][] = $this->module->getFrontTranslation('errorProductOrCombinationIsOutOfStock');
                     }
                 }

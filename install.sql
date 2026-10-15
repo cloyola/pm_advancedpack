@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `PREFIX_pm_advancedpack` (
   `id_pack` int(10) unsigned NOT NULL,
   `id_shop` int(10) unsigned NOT NULL,
-  `fixed_price` decimal(20,6) UNSIGNED NULL DEFAULT NULL,
+  `fixed_price` text NULL DEFAULT NULL,
   `allow_remove_product` tinyint(3) unsigned DEFAULT 0,
   PRIMARY KEY (`id_pack`, `id_shop`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

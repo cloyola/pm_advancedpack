@@ -31,7 +31,7 @@
 
 	<div id="ap5-pack-product-tabs-content" class="tab-content clearfix">
 		{foreach from=$productsPackUnique item=productPack name=productPack_list}
-			<div class="tab-pane fade {if $smarty.foreach.productPack_list.first}in active{/if}" id="pack-product-tab-{$productPack.id_product_pack|intval}">
+			<div class="tab-pane {if $smarty.foreach.productPack_list.first} active{/if}" id="pack-product-tab-{$productPack.id_product_pack|intval}">
 
 				{block name='ap5_products_description'}
 					{if $packShowProductsShortDescription || $packShowProductsLongDescription}

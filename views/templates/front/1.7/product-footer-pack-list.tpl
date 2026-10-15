@@ -137,7 +137,7 @@
 													{l s='Save %amount%' d='Shop.Theme.Catalog' sprintf=['%amount%' => $productPack.productReductionAmountTotal]}
 												</span>
 											{else}
-												<span class="discount discount-percentage ap5-pack-product-reduction-value">{l s='Save %percentage%' d='Shop.Theme.Catalog' sprintf=['%percentage%' => $productPack.reduction_amount * 100]}%</span>
+												<span class="discount discount-percentage ap5-pack-product-reduction-value">{l s='Save %percentage%' d='Shop.Theme.Catalog' sprintf=['%percentage%' => $productPack.reduction_amount * 100|cat:'%']}</span>
 											{/if}
 										{/if}
 									{/if}

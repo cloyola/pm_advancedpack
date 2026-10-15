@@ -1,3 +1,4 @@
+{strip}
 {if version_compare($smarty.const._PS_VERSION_, '1.7.3.0', '>=')}
 	{assign var='originalPriceSimulationCssClasses' value='badge-pill badge-info'}
 	{assign var='discountsSimulationCssClasses' value='badge-pill badge-warning'}
@@ -41,9 +42,10 @@
 						<tr>
 							<td><strong>{l s='Final pack price:' mod='pm_advancedpack'}</strong></td>
 							<td>&nbsp;</td>
-							<td class="text-right"><span class="{if $packPrice <= $packClassicPrice && $packPrice > 0}{$finalPriceSimulationCssClasses}{else}{$priceErrorCssClasses}{/if} img-rounded rounded p-x-1">{convertPrice price=$packPrice}</span></td>
-							<td class="text-right"><span class="{if $packPrice <= $packClassicPrice && $packPriceWt > 0}{$finalPriceSimulationCssClasses}{else}{$priceErrorCssClasses}{/if} img-rounded rounded p-x-1">{convertPrice price=$packPriceWt}</span></td>
+							<td class="text-right"><span class="{if $packPrice <= $packClassicPrice && $packPrice > 0}{$finalPriceSimulationCssClasses}{else}{$priceErrorCssClasses}{/if} img-rounded rounded p-x-1">{convertPrice price=$totalFinal}</span></td>
+							<td class="text-right"><span class="{if $packPrice <= $packClassicPrice && $packPriceWt > 0}{$finalPriceSimulationCssClasses}{else}{$priceErrorCssClasses}{/if} img-rounded rounded p-x-1">{convertPrice price=$totalFinalWt}</span></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
+{/strip}

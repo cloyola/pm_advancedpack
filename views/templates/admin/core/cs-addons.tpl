@@ -1,8 +1,8 @@
 {**
  * pm_advancedpack
  *
- * @author    Presta-Module.com <support@presta-module.com> - http://www.presta-module.com
- * @copyright Presta-Module 2019 - http://www.presta-module.com
+ * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
+ * @copyright Presta-Module - https://www.presta-module.com
  * @license   Commercial
  *
  *           ____     __  __

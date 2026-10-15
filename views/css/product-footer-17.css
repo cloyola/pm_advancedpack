@@ -1,3 +1,16 @@
+/* Custom Font */
+@font-face {
+	font-family: 'ap5-mu';
+	src:  url('../fonts/ap5-mu.eot?seokvj');
+	src:  url('../fonts/ap5-mu.eot?seokvj#iefix') format('embedded-opentype'),
+		url('../fonts/ap5-mu.ttf?seokvj') format('truetype'),
+		url('../fonts/ap5-mu.woff?seokvj') format('woff'),
+		url('../fonts/ap5-mu.svg?seokvj#ap5-mu') format('svg');
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
 /* Section */
 #ap5-page-product-box.page-product-box a {
 	text-decoration: none;
@@ -148,7 +161,7 @@
 .ap5-pack-product .ap5-pack-product-icon-plus:before {
 	color: black;
 	content: "\e147";
-	font-family: "Material Icons";
+	font-family: "Material Icons", "ap5-mu";
 	font-size: 25px;
 	position: absolute;
 	top: 37%;

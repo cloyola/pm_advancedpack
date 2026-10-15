@@ -2,8 +2,8 @@
 /**
  * Advanced Pack 5
  *
- * @author    Presta-Module.com <support@presta-module.com> - http://www.presta-module.com
- * @copyright Presta-Module 2019 - http://www.presta-module.com
+ * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
+ * @copyright Presta-Module - https://www.presta-module.com
  * @license   Commercial
  *
  *           ____     __  __
@@ -47,7 +47,7 @@ class AdvancedPackCoreClass extends Module
         $this->_support_link = array(
             array('link' => $forum_url, 'target' => '_blank', 'label' => $this->l('Forum topic', $this->_coreClassName)),
             
-            array('link' => 'http://addons.prestashop.com/contact-community.php?id_product=1015', 'target' => '_blank', 'label' => $this->l('Support contact', $this->_coreClassName)),
+            array('link' => 'https://addons.prestashop.com/contact-form.php?id_product=1015', 'target' => '_blank', 'label' => $this->l('Support contact', $this->_coreClassName)),
         );
     }
     public static function _isFilledArray($array)

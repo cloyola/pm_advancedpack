@@ -12,7 +12,7 @@
 					{/if}
 					{assign var=currentProductPrice value=AdvancedPack::getPriceStaticPack($packProduct['productObj']->id, false, $idProductAttribute, 6, null, false, true, $packProduct['quantity'])}
 					{assign var=originalProductPrice value=AdvancedPack::getPriceStaticPack($packProduct['productObj']->id, false, $idProductAttribute, 6, null, false, false, $packProduct['quantity'])}
-				<tr id="ap5_packRow-{$idProductPack|escape:'html':'UTF-8'}" data-id-product-pack="{$idProductPack|escape:'html':'UTF-8'}" class="{if !empty($idPackListToFix[$packProduct['id_pack']]) && !empty($idPackListToFix[$packProduct['id_pack']]['idProductList']) && in_array($packProduct['id_product'], $idPackListToFix[$packProduct['id_pack']]['idProductList'])} ap5-combination-warning{/if}">
+				<tr id="ap5_packRow-{$idProductPack|escape:'html':'UTF-8'}" data-id-product-pack="{$idProductPack|escape:'html':'UTF-8'}" class="{if !empty($packProduct['id_pack']) && !empty($idPackListToFix[$packProduct['id_pack']]) && !empty($idPackListToFix[$packProduct['id_pack']]['idProductList']) && in_array($packProduct['id_product'], $idPackListToFix[$packProduct['id_pack']]['idProductList'])} ap5-combination-warning{/if}">
 					<td class="center">
 						{AdvancedPackCoreClass::getThumbnailImageHTML($packProduct['id_product'], $imageCoverId.id_image)}
 					</td>
@@ -66,9 +66,22 @@
 					</td>
 					<td class="ap5_productPrice-container">
 						{if $originalProductPrice != $currentProductPrice}
-						<span class="ap5-pack-product-original-price">{convertPrice price=$originalProductPrice}</span><br />
+							<span class="ap5-pack-product-original-price">
+								{if is_numeric($originalProductPrice)}
+									{convertPrice price=$originalProductPrice}
+								{else}
+									{l s='N/A' mod='pm_advancedpack'}
+								{/if}
+							</span>
+							<br />
 						{/if}
-						<span class="ap5-pack-product-current-price">{convertPrice price=$currentProductPrice}</span>
+						<span class="ap5-pack-product-current-price">
+							{if is_numeric($currentProductPrice)}
+								{convertPrice price=$currentProductPrice}
+							{else}
+								{l s='N/A' mod='pm_advancedpack'}
+							{/if}
+						</span>
 					</td>
 					<td class="ap5_discountCell">
 						<input min="0" class="ap5_reductionAmount" type="text" required="required" onchange="this.value = this.value.replace(/,/g, '.');" value="{if $packProduct['reduction_type'] == 'percentage'}{toolsConvertPrice price=$packProduct['reduction_amount']*100}{else}{toolsConvertPrice price=$packProduct['reduction_amount']}{/if}" size="2" id="ap5_reductionAmount-{$idProductPack|escape:'html':'UTF-8'}" name="ap5_reductionAmount-{$idProductPack|escape:'html':'UTF-8'}" maxlength="14" data-id-product-pack="{$idProductPack|escape:'html':'UTF-8'}" /><select class="ap5_reductionType" name="ap5_reductionType-{$idProductPack|escape:'html':'UTF-8'}" id="ap5_reductionType-{$idProductPack|escape:'html':'UTF-8'}" data-id-product-pack="{$idProductPack|escape:'html':'UTF-8'}">

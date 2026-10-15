@@ -70,7 +70,8 @@ var ap5ProductFooterPlugin = {
 							idProduct: idPack,
 							idProductAttribute: jsonData.ap5Data.idProductAttribute,
 							linkAction: 'add-to-cart'
-						}
+						},
+						resp: jsonData
 					});
 					$(document).trigger('ap5-After-AddPackToCart-ProductFooter', [idPack, callerElement]);
 				},

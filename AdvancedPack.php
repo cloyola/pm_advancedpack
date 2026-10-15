@@ -2,8 +2,8 @@
 /**
  * Advanced Pack 5
  *
- * @author    Presta-Module.com <support@presta-module.com> - http://www.presta-module.com
- * @copyright Presta-Module 2019 - http://www.presta-module.com
+ * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
+ * @copyright Presta-Module - https://www.presta-module.com
  * @license   Commercial
  *
  *           ____     __  __
@@ -55,6 +55,10 @@ class AdvancedPack extends Product
             $context = self::getContext();
         }
         $cur_cart = $context->cart;
+        if (!Validate::isLoadedObject($cur_cart) && Validate::isUnsignedId((int)$context->cookie->id_cart)) {
+            $cur_cart = new Cart((int)$context->cookie->id_cart);
+            self::$ap5Context->cart = $cur_cart;
+        }
         if ($divisor !== null) {
             Tools::displayParameterAsDeprecated('divisor');
         }
@@ -191,10 +195,6 @@ class AdvancedPack extends Product
                 if ($gsrModuleInstance && version_compare(_PS_VERSION_, '1.7.0.0', '>=') && version_compare($gsrModuleInstance->version, '4.3.0', '<')) {
                     $gsrModuleInstance = false;
                 }
-                $linevenReviewsModuleInstance = Module::getInstanceByName('homecomments');
-                if (!Validate::isLoadedObject($linevenReviewsModuleInstance) || !$linevenReviewsModuleInstance->active || version_compare($linevenReviewsModuleInstance->version, '1.4.2', '<')) {
-                    $linevenReviewsModuleInstance = false;
-                }
                 $PM_MultipleFeaturesModuleInstance = Module::getInstanceByName('pm_multiplefeatures');
                 $productsPack = self::getPackPriceTable($productsPack, self::getPackFixedPrice($idPack), self::getPackIdTaxRulesGroup((int)$idPack), $useTax, true, true, $attributesList, $quantityList);
                 if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
@@ -244,10 +244,10 @@ class AdvancedPack extends Product
                     }
                     $packProduct['reduction_amount_tax_incl'] = $packProduct['priceInfos']['reductionAmountWt'];
                     $packProduct['reduction_amount_tax_excl'] = $packProduct['priceInfos']['reductionAmount'];
-                    $packProduct['productPackPrice'] = $packProduct['priceInfos']['productPackPriceWt'];
-                    $packProduct['productPackPriceTaxExcl'] = $packProduct['priceInfos']['productPackPrice'];
-                    $packProduct['productClassicPrice'] = $packProduct['priceInfos']['productClassicPriceWt'];
-                    $packProduct['productClassicPriceTaxExcl'] = $packProduct['priceInfos']['productClassicPrice'];
+                    $packProduct['productPackPrice'] = ($packProduct['priceInfos']['productPackPriceWt'] + $packProduct['priceInfos']['productEcoTaxWt']);
+                    $packProduct['productPackPriceTaxExcl'] = ($packProduct['priceInfos']['productPackPrice'] + $packProduct['priceInfos']['productEcoTax']);
+                    $packProduct['productClassicPrice'] = ($packProduct['priceInfos']['productClassicPriceWt'] + $packProduct['priceInfos']['productEcoTaxWt']);
+                    $packProduct['productClassicPriceTaxExcl'] = ($packProduct['priceInfos']['productClassicPrice'] + $packProduct['priceInfos']['productEcoTax']);
                     $packProduct['productClassicPriceTotal'] = $packProduct['productClassicPrice'] * (int)$packProduct['quantity'];
                     $packProduct['productClassicPriceTaxExclTotal'] = $packProduct['productClassicPriceTaxExcl'] * (int)$packProduct['quantity'];
                     $packProduct['productPackPriceTotal'] = $packProduct['productPackPrice'] * (int)$packProduct['quantity'];
@@ -297,12 +297,6 @@ class AdvancedPack extends Product
                         $gsrAverageTest = trim(strip_tags($packProduct['gsrAverage']));
                         if (is_string($packProduct['gsrAverage']) && !empty($gsrAverageTest)) {
                             $packProduct['gsrReviewsList'] = $gsrModuleInstance->hookDisplayProductTabContent(array('bForce' => true, 'product' => $packProduct['productObj']));
-                        }
-                    }
-                    if ($linevenReviewsModuleInstance) {
-                        $packProduct['gsrAverage'] = $linevenReviewsModuleInstance->partnerDisplayAverageRate((int)$packProduct['id_product'], 'pm_advancedpack');
-                        if (!empty($packProduct['gsrAverage'])) {
-                            $packProduct['gsrReviewsList'] = $linevenReviewsModuleInstance->partnerDisplayListReviews((int)$packProduct['id_product'], 'pm_advancedpack');
                         }
                     }
                     $text_fields = array();
@@ -398,6 +392,11 @@ class AdvancedPack extends Product
             $groupReduction = Group::getReductionByIdGroup($currentIdGroup);
             $totalClassicPriceWithoutTaxes = $totalClassicPriceWithTaxes = $totalEcoTax = 0;
             if ($packContent !== false) {
+                $priceRounding = null;
+                if (Module::isEnabled('pricerounding') && Tools::file_exists_cache(_PS_MODULE_DIR_.'pricerounding/classes/PriceroundingConfiguration.php')) {
+                    include_once(_PS_MODULE_DIR_.'pricerounding/classes/PriceroundingConfiguration.php');
+                    $priceRounding = new PriceroundingConfiguration();
+                }
                 foreach ($packContent as &$packProduct) {
                     $productPackIdAttribute = (isset($attributesList[(int)$packProduct['id_product_pack']]) ? $attributesList[(int)$packProduct['id_product_pack']] : (isset($packProduct['id_product_attribute']) && (int)$packProduct['id_product_attribute'] ? (int)$packProduct['id_product_attribute'] : (int)$packProduct['default_id_product_attribute']));
                     $specificPriceOutput = null;
@@ -452,6 +451,8 @@ class AdvancedPack extends Product
                     }
                     $taxManager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int)$packProduct['id_product']));
                     $productTaxCalculator = $taxManager->getTaxCalculator();
+                    $ecoTaxManager = TaxManagerFactory::getManager($address, (int)Configuration::get('PS_ECOTAX_TAX_RULES_GROUP_ID'));
+                    $ecoTaxCalculator = $ecoTaxManager->getTaxCalculator();
                     $packReductionType = $packProduct['reduction_type'];
                     $packReductionAmount = $packProduct['reduction_amount'];
                     if (isset($packProduct['combinationsInformations']) && isset($packProduct['combinationsInformations'][$productPackIdAttribute]) && $packProduct['combinationsInformations'][$productPackIdAttribute]['reduction_type'] != null) {
@@ -484,22 +485,8 @@ class AdvancedPack extends Product
                         }
                         $packFixedPrice += $combinationPriceImpact;
                     }
-                    $productEcoTax = self::getProductEcoTax((int)$packProduct['id_product'], (int)$productPackIdAttribute);
-                    if ($useTax) {
-                        $taxManager = TaxManagerFactory::getManager($address, (int)Configuration::get('PS_ECOTAX_TAX_RULES_GROUP_ID'));
-                        $ecoTaxCalculator = $taxManager->getTaxCalculator();
-                        $productPackPrice += $ecoTaxCalculator->addTaxes($productEcoTax);
-                        $productPackPriceWt += $ecoTaxCalculator->addTaxes($productEcoTax);
-                        $productClassicPrice += $ecoTaxCalculator->addTaxes($productEcoTax);
-                        $productClassicPriceWt += $ecoTaxCalculator->addTaxes($productEcoTax);
-                        $totalEcoTax += $ecoTaxCalculator->addTaxes($productEcoTax);
-                    } else {
-                        $productPackPrice += $productEcoTax;
-                        $productPackPriceWt += $productEcoTax;
-                        $productClassicPrice += $productEcoTax;
-                        $productClassicPriceWt += $productEcoTax;
-                        $totalEcoTax += $productEcoTax;
-                    }
+                    $productEcoTax = $productEcoTaxWt = self::getProductEcoTax((int)$packProduct['id_product'], (int)$productPackIdAttribute);
+                    $productEcoTaxWt = $ecoTaxCalculator->addTaxes($productEcoTaxWt);
                     if ($packFixedPrice > 0 && $excludeVATCase) {
                         $address2 = clone($address);
                         if (!empty($address2->vat_number)) {
@@ -522,17 +509,29 @@ class AdvancedPack extends Product
                         'productClassicPrice' => $productClassicPrice,
                         'productClassicPriceWt' => $productClassicPriceWt,
                         'taxesClassic' => $productClassicPriceWt - $productClassicPrice,
-                        'taxesPack' => ($productPackPriceWt - $productEcoTax) - $productTaxCalculator->removeTaxes($productPackPriceWt - $productEcoTax),
+                        'taxesPack' => $productPackPriceWt - $productPackPrice,
                         'productEcoTax' => $productEcoTax,
+                        'productEcoTaxWt' => $productEcoTaxWt,
                         'quantity' =>  (int)$packProduct['quantity'],
                     );
-                    if (Module::isEnabled('pricerounding') && Tools::file_exists_cache(_PS_MODULE_DIR_.'pricerounding/classes/PriceroundingConfiguration.php')) {
-                        include_once(_PS_MODULE_DIR_.'pricerounding/classes/PriceroundingConfiguration.php');
-                        $pricerounding = new PriceroundingConfiguration();
-                        if (method_exists($pricerounding, 'getRoundedPrice')) {
-                            $productPackPriceWt = $pricerounding->getRoundedPrice((int) $packProduct['id_product'], $productPackPriceWt);
+                    if ($priceRounding != null && method_exists($priceRounding, 'getRoundedPrice')) {
+                        $prConfigs = null;
+                        if (method_exists($priceRounding, 'getPRConfigurations')) {
+                            $context = self::getContext();
+                            $prConfigs = $priceRounding->getPRConfigurations(
+                                $context->shop->id,
+                                (int)$packProduct['id_product'],
+                                (int)(Validate::isLoadedObject($context->customer) && !empty($context->customer->id) ? $context->customer->id : 0),
+                                (int)$address->id_country,
+                                (int)$address->id_state,
+                                (int)$context->currency->id,
+                                (int)$context->language->id
+                            );
+                        }
+                        if ($prConfigs === null || (is_array($prConfigs) && !empty($prConfigs))) {
+                            $productPackPriceWt = $priceRounding->getRoundedPrice((int)$packProduct['id_product'], $productPackPriceWt);
                             $packProduct['priceInfos']['productPackPriceWt'] = $productPackPriceWt;
-                            $packProduct['priceInfos']['taxesPack'] = ($productPackPriceWt - $packProduct['priceInfos']['productEcoTax']) - $productTaxCalculator->removeTaxes($productPackPriceWt - $packProduct['priceInfos']['productEcoTax']);
+                            $packProduct['priceInfos']['taxesPack'] = $productPackPriceWt - $productPackPrice;
                         }
                     }
                     if ($packReductionType == 'amount') {
@@ -549,18 +548,10 @@ class AdvancedPack extends Product
                         $productTaxCalculator = $taxManager->getTaxCalculator();
                         if ($packIdTaxRulesGroup) {
                             $packProduct['priceInfos']['productPackPriceWt'] = Tools::ps_round((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            if ($packProduct['priceInfos']['productEcoTax'] > 0) {
-                                $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round($productTaxCalculator->removeTaxes($packProduct['priceInfos']['productPackPriceWt'] - $packProduct['priceInfos']['productEcoTax']) + $packProduct['priceInfos']['productEcoTax'], 6);
-                            } else {
-                                $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            }
+                            $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
                         } else {
                             $packProduct['priceInfos']['productPackPriceWt'] = Tools::ps_round((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            if ($packProduct['priceInfos']['productEcoTax'] > 0) {
-                                $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round($productTaxCalculator->removeTaxes($packProduct['priceInfos']['productPackPriceWt'] - $packProduct['priceInfos']['productEcoTax']) + $packProduct['priceInfos']['productEcoTax'], 6);
-                            } else {
-                                $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            }
+                            $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
                         }
                     }
                 } else {
@@ -572,6 +563,7 @@ class AdvancedPack extends Product
                         $packProduct['priceInfos']['taxesClassic'] = Tools::ps_round($packProduct['priceInfos']['taxesClassic'], 6);
                         $packProduct['priceInfos']['taxesPack'] = Tools::ps_round($packProduct['priceInfos']['taxesPack'], 6);
                         $packProduct['priceInfos']['productEcoTax'] = Tools::ps_round($packProduct['priceInfos']['productEcoTax'], 6);
+                        $packProduct['priceInfos']['productEcoTaxWt'] = Tools::ps_round($packProduct['priceInfos']['productEcoTaxWt'], 6);
                     }
                 }
             }
@@ -602,13 +594,13 @@ class AdvancedPack extends Product
                 $packPriceWt += $packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity'];
                 $packPrice += $packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity'];
                 $totalPackEcoTax += $packProduct['priceInfos']['productEcoTax'] * (int)$packProduct['quantity'];
-                $totalPackEcoTaxWt += $packProduct['priceInfos']['productEcoTax'] * (int)$packProduct['quantity'];
+                $totalPackEcoTaxWt += $packProduct['priceInfos']['productEcoTaxWt'] * (int)$packProduct['quantity'];
             }
-            if (!$includeEcoTax) {
-                $packPrice -= $totalPackEcoTax;
-                $packPriceWt -= $totalPackEcoTaxWt;
-                $packClassicPrice -= $totalPackEcoTax;
-                $packClassicPriceWt -= $totalPackEcoTaxWt;
+            if ($includeEcoTax) {
+                $packPriceWt += $totalPackEcoTaxWt;
+                $packPrice += $totalPackEcoTax;
+                $packClassicPrice += $totalPackEcoTax;
+                $packClassicPriceWt += $totalPackEcoTaxWt;
             }
             if ($useTax) {
                 if ($usePackReduction) {
@@ -881,12 +873,20 @@ class AdvancedPack extends Product
         }
         return (float)$packWeight;
     }
-    public static function getPackOosMessage($idPack, $idLang)
+    public static function getPackOosMessage($idPack, $idLang, $packAttributesList = array(), $packExcludeList = array())
     {
-        $packContent = self::getPackContent($idPack);
+        $packContent = self::getPackContent($idPack, null, false, $packAttributesList);
         if ($packContent !== false) {
             foreach ($packContent as $packProduct) {
-                $stockAvailable = (int)StockAvailable::getQuantityAvailableByProduct((int)$packProduct['id_product'], $packProduct['default_id_product_attribute']);
+                if (in_array((int)$packProduct['id_product_pack'], $packExcludeList)) {
+                    continue;
+                }
+                if (!isset($packAttributesList[$packProduct['id_product_pack']]) || !is_numeric($packAttributesList[$packProduct['id_product_pack']])) {
+                    $idProductAttribute = (int)$packProduct['default_id_product_attribute'];
+                } else {
+                    $idProductAttribute = (int)$packAttributesList[$packProduct['id_product_pack']];
+                }
+                $stockAvailable = (int)StockAvailable::getQuantityAvailableByProduct((int)$packProduct['id_product'], $idProductAttribute);
                 if ($stockAvailable <= 0 && Product::isAvailableWhenOutOfStock(StockAvailable::outOfStock((int)$packProduct['id_product']))) {
                     $productObj = new Product((int)$packProduct['id_product'], false, (int)$idLang);
                     return $productObj->available_later;
@@ -937,8 +937,12 @@ class AdvancedPack extends Product
         self::storeInCache($cacheId, $finalIdTaxRulesGroup);
         return $finalIdTaxRulesGroup;
     }
-    public static function getPackEcoTax($idPack, $idProductAttributeList = array())
+    public static function getPackEcoTax($idPack, $idProductAttributeList = array(), $packIdTaxRulesGroup = null)
     {
+        $cacheId = self::getPMCacheId(__METHOD__.(int)$idPack.serialize($idProductAttributeList).(int)$packIdTaxRulesGroup);
+        if (self::isInCache($cacheId)) {
+            return self::getFromCache($cacheId);
+        }
         $packContent = self::getPackContent($idPack);
         $packEcoTaxAmount = 0;
         if ($packContent !== false) {
@@ -947,6 +951,13 @@ class AdvancedPack extends Product
                 $packEcoTaxAmount += self::getProductEcoTax((int)$packProduct['id_product'], $productPackIdAttribute) * (int)$packProduct['quantity'];
             }
         }
+        if (!empty($packIdTaxRulesGroup)) {
+            list($address) = self::getAddressInstance();
+            $taxManager = TaxManagerFactory::getManager($address, $packIdTaxRulesGroup);
+            $productTaxCalculator = $taxManager->getTaxCalculator();
+            $packEcoTaxAmount = $productTaxCalculator->removeTaxes($packEcoTaxAmount);
+        }
+        self::storeInCache($cacheId, (float)$packEcoTaxAmount);
         return (float)$packEcoTaxAmount;
     }
     public static function getProductEcoTax($idProduct, $idProductAttribute)
@@ -1034,7 +1045,7 @@ class AdvancedPack extends Product
         if (!self::isInCache($cacheId)) {
             $idProductExclusiveList = array();
             $sql = new DbQuery();
-            $sql->select('GROUP_CONCAT(app.`id_product`)');
+            $sql->select('GROUP_CONCAT(DISTINCT app.`id_product`)');
             $sql->from('pm_advancedpack_products', 'app');
             $sql->innerJoin('product_shop', 'p_shop', 'p_shop.`id_shop`=' . (int)$idShop . ' AND p_shop.`id_product` = app.`id_pack` AND p_shop.`active` = 1');
             $sql->where('app.`exclusive`=1');
@@ -1188,8 +1199,8 @@ class AdvancedPack extends Product
                         $attributeList['attributes'][] = $attributeRow['public_group_name'].' : '.$attributeRow['attribute_name'];
                         $attributeList['attributes_small'][] = $attributeRow['attribute_name'];
                     }
-                    $attributeList['attributes'] = implode($attributeList['attributes'], ', ');
-                    $attributeList['attributes_small'] = implode($attributeList['attributes_small'], ', ');
+                    $attributeList['attributes'] = implode(', ', $attributeList['attributes']);
+                    $attributeList['attributes_small'] = implode(', ', $attributeList['attributes_small']);
                 }
             }
         } else {
@@ -2022,7 +2033,7 @@ class AdvancedPack extends Product
         }
         return $customizationError;
     }
-    public static function addPackToCart($idPack, $quantity = 1, $idProductAttributeList = array(), $customizationList = array(), $fromCartController = true, $fromProductController = false)
+    public static function addPackToCart($idPack, $quantity = 1, $idProductAttributeList = array(), $customizationList = array(), $fromCartController = true, $fromProductController = false, $die = true)
     {
         $errors = array();
         $moduleInstance = AdvancedPack::getModuleInstance();
@@ -2053,7 +2064,7 @@ class AdvancedPack extends Product
                                     $values[] = '('.(int)$context->cookie->id_cart.', '.(int)$context->shop->id.', '.(int)$idPack.', '.(int)$packProduct['id_product_pack'].', '.(int)$idProductAttribute.', '.(int)$productPackIdAttribute.', "'.pSQL($packUniqueHash).'", ' . (AdvancedPackCoreClass::_isFilledArray($packCustomizationList) ? '"' . pSQL(Tools::jsonEncode($packCustomizationList)) . '"' : 'NULL') . ')';
                                 }
                                 if (AdvancedPackCoreClass::_isFilledArray($values)) {
-                                    $resPackAdd &= Db::getInstance()->execute('INSERT IGNORE INTO `'._DB_PREFIX_.'pm_advancedpack_cart_products` (`id_cart`, `id_shop`, `id_pack`, `id_product_pack`, `id_product_attribute_pack`, `id_product_attribute`, `unique_hash`, `customization_infos`) VALUES '.implode($values, ','));
+                                    $resPackAdd &= Db::getInstance()->execute('INSERT IGNORE INTO `'._DB_PREFIX_.'pm_advancedpack_cart_products` (`id_cart`, `id_shop`, `id_pack`, `id_product_pack`, `id_product_attribute_pack`, `id_product_attribute`, `unique_hash`, `customization_infos`) VALUES '.implode(',', $values));
                                 }
                             }
                             if ($resPackAdd) {
@@ -2067,13 +2078,11 @@ class AdvancedPack extends Product
                                             'cartPackProducts' => $moduleInstance->getFormatedPackAttributes($context->cart),
                                         );
                                         if (Configuration::get('PS_BLOCK_CART_AJAX') == 0) {
-                                            if (Configuration::get('PS_CART_REDIRECT') == 0) {
-                                                $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getProductLink($idPack);
-                                            } else {
-                                                $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
-                                            }
+                                            $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
                                         }
-                                        die(Tools::jsonEncode($jsonCartContent));
+                                        if ($die) {
+                                            die(Tools::jsonEncode($jsonCartContent));
+                                        }
                                     } else {
                                         ob_start();
                                         $cartController = new CartController();
@@ -2125,7 +2134,9 @@ class AdvancedPack extends Product
                                                     $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
                                                 }
                                             }
-                                            die(Tools::jsonEncode($jsonCartContent));
+                                            if ($die) {
+                                                die(Tools::jsonEncode($jsonCartContent));
+                                            }
                                         } else {
                                             $cartController->displayAjax();
                                         }
@@ -2147,16 +2158,20 @@ class AdvancedPack extends Product
         }
         if (count($errors)) {
             if ($fromCartController) {
-                if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
-                    http_response_code(500);
+                if ($die) {
+                    if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
+                        http_response_code(500);
+                    }
+                    die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
                 }
-                die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
             } else {
                 $context->controller->errors = $errors;
             }
+            return false;
         }
+        return (int)$idProductAttribute;
     }
-    public static function addExplodedPackToCart($idPack, $quantity = 1, $idProductAttributeList = array(), $customizationList = array(), $quantityList = array(), $packExcludeList = array())
+    public static function addExplodedPackToCart($idPack, $quantity = 1, $idProductAttributeList = array(), $customizationList = array(), $quantityList = array(), $packExcludeList = array(), $die = true)
     {
         $errors = array();
         $moduleInstance = AdvancedPack::getModuleInstance();
@@ -2193,7 +2208,7 @@ class AdvancedPack extends Product
                                 UPDATE `'._DB_PREFIX_.'customization`
                                 SET `in_cart`=1
                                 WHERE `id_cart`=' . (int)self::getContext()->cart->id . '
-                                AND `id_product`=' . (int)(int)$packProduct['id_product'] . '
+                                AND `id_product`=' . (int)$packProduct['id_product'] . '
                                 AND `id_product_attribute`=' . (int)$productPackIdAttribute . '
                                 AND `quantity`=' . (int)$packProduct['quantity'] * $quantity);
                         }
@@ -2219,13 +2234,11 @@ class AdvancedPack extends Product
                         'explodedProductsData' => array('cq' => $quantity, 'idpal' => $idProductAttributeList, 'cl' => $customizationList, 'ql' => $quantityList, 'pel' => $packExcludeList),
                     );
                     if (Configuration::get('PS_BLOCK_CART_AJAX') == 0) {
-                        if (Configuration::get('PS_CART_REDIRECT') == 0) {
-                            $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getProductLink($idPack);
-                        } else {
-                            $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
-                        }
+                        $jsonCartContent['ap5RedirectURL'] = self::getContext()->link->getPageLink('cart');
                     }
-                    die(Tools::jsonEncode($jsonCartContent));
+                    if ($die) {
+                        die(Tools::jsonEncode($jsonCartContent));
+                    }
                 } else {
                     ob_start();
                     $cartController = new CartController();
@@ -2244,7 +2257,9 @@ class AdvancedPack extends Product
                                 'hasAttributes' => true,
                                 'attributes' => $moduleInstance->displayPackContent($idPack, false, pm_advancedpack::PACK_CONTENT_BLOCK_CART, $packProducts),
                             );
-                            die(Tools::jsonEncode($jsonCartContent));
+                            if ($die) {
+                                die(Tools::jsonEncode($jsonCartContent));
+                            }
                         }
                     }
                 }
@@ -2255,11 +2270,15 @@ class AdvancedPack extends Product
             $errors[] = $moduleInstance->getFrontTranslation('errorInvalidPack');
         }
         if (count($errors)) {
-            if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
-                http_response_code(500);
+            if ($die) {
+                if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
+                    http_response_code(500);
+                }
+                die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
             }
-            die(Tools::jsonEncode(array('hasError' => true, 'from_AP5' => true, 'errors' => $errors)));
+            return false;
         }
+        return true;
     }
     public static function getAddressInstance()
     {
@@ -2385,6 +2404,11 @@ class AdvancedPack extends Product
         $sp->from = '0000-00-00 00:00:00';
         $sp->to = '0000-00-00 00:00:00';
         $sp->from_quantity = 1;
+        $sharedShops = Shop::getSharedShops($sp->id_shop, Shop::SHARE_ORDER);
+        if (is_array($sharedShops) && count($sharedShops) > 1) {
+            $sp->id_shop_group = (new Shop($sp->id_shop))->id_shop_group;
+            $sp->id_shop = 0;
+        }
         $currentCustomer = self::getContext()->customer;
         $currentCustomerIsLogged = (Validate::isLoadedObject($currentCustomer) && $currentCustomer->isLogged());
         $idGroupList = array();
@@ -2507,7 +2531,11 @@ class AdvancedPack extends Product
             $spByCountry->id_country = $idCountry;
             $spByCountry->id_currency = $idCurrency;
             $currentGlobalGroupDiscount = (!empty($groupReductionList[(int)$idGroup]) ? $groupReductionList[(int)$idGroup] : 0);
-            if ($idGroup && $currentGlobalGroupDiscount > 0) {
+            if ($idGroup && $currentGlobalGroupDiscount >= 100) {
+                $spByCountry->price = 0;
+                $spByCountry->reduction = 0;
+                $spByCountry->reduction_type = 'amount';
+            } elseif ($idGroup && $currentGlobalGroupDiscount > 0 && $currentGlobalGroupDiscount < 100) {
                 if ($packIdTaxRulesGroup) {
                     $spByCountry->price = self::getPackPrice($idPack, false, false, false, 6, $idProductAttributeList, array(), array(), true) / (1 - $currentGlobalGroupDiscount/100);
                     $groupPriceWt = self::getPackPrice($idPack, true, false, false, 6, $idProductAttributeList, array(), array(), true);
@@ -2542,14 +2570,22 @@ class AdvancedPack extends Product
                     } else {
                         if ($packIdTaxRulesGroup) {
                             $spByCountry->price = self::getPackPrice($idPack, false, false, false, 6, $idProductAttributeList);
+                            if (self::getPackEcoTax($idPack, $idProductAttributeList) > 0) {
+                                $spByCountry->price = self::getPackPrice($idPack, false, false, true, 6, $idProductAttributeList);
+                                $spByCountry->price -= (self::getPackEcoTax($idPack, $idProductAttributeList) - self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup));
+                            }
                         } else {
                             $spByCountry->price = self::getPackPrice($idPack, true, false, false, 6, $idProductAttributeList);
+                            if (self::getPackEcoTax($idPack, $idProductAttributeList) > 0) {
+                                $spByCountry->price = self::getPackPrice($idPack, true, false, true, 6, $idProductAttributeList);
+                                $spByCountry->price -= (self::getPackEcoTax($idPack, $idProductAttributeList) - self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup));
+                            }
                         }
                     }
                     if ($packHasFixedPrice) {
                         $spByCountry->reduction = self::getPackPrice($idPack, true, false, true, 6, $idProductAttributeList) - self::getPackPrice($idPack, true, true, true, 6, $idProductAttributeList);
                         $spByCountry->reduction_type = 'amount';
-                    } elseif ($packHasPercentageReduction) {
+                    } elseif ($packHasPercentageReduction && !(self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup) > 0)) {
                         $spByCountry->reduction = current($reductionPercentageTable);
                         $spByCountry->reduction_type = 'percentage';
                     } else {
@@ -2608,13 +2644,21 @@ class AdvancedPack extends Product
                 } elseif ($idGroup && $idProductAttribute && !$packIdTaxRulesGroup && (int)Group::getPriceDisplayMethod($idGroup) == 1) {
                     if ($packIdTaxRulesGroup) {
                         $spByCountry->price = self::getPackPrice($idPack, false, false, false, 6, $idProductAttributeList);
+                        if (self::getPackEcoTax($idPack, $idProductAttributeList) > 0) {
+                            $spByCountry->price = self::getPackPrice($idPack, false, false, true, 6, $idProductAttributeList);
+                            $spByCountry->price -= (self::getPackEcoTax($idPack, $idProductAttributeList) - self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup));
+                        }
                     } else {
                         $spByCountry->price = self::getPackPrice($idPack, true, false, false, 6, $idProductAttributeList);
+                        if (self::getPackEcoTax($idPack, $idProductAttributeList) > 0) {
+                            $spByCountry->price = self::getPackPrice($idPack, true, false, true, 6, $idProductAttributeList);
+                            $spByCountry->price -= (self::getPackEcoTax($idPack, $idProductAttributeList) - self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup));
+                        }
                     }
                     if ($packHasFixedPrice) {
                         $spByCountry->reduction = self::getPackPrice($idPack, true, false, true, 6, $idProductAttributeList) - self::getPackPrice($idPack, true, true, true, 6, $idProductAttributeList);
                         $spByCountry->reduction_type = 'amount';
-                    } elseif ($packHasPercentageReduction) {
+                    } elseif ($packHasPercentageReduction && !(self::getPackEcoTax($idPack, $idProductAttributeList, $packIdTaxRulesGroup) > 0)) {
                         $spByCountry->reduction = current($reductionPercentageTable);
                         $spByCountry->reduction_type = 'percentage';
                     } else {
@@ -2633,6 +2677,9 @@ class AdvancedPack extends Product
             }
             $spByCountry->price = Tools::ps_round($spByCountry->price, 6);
             $spByCountry->reduction = Tools::ps_round($spByCountry->reduction, 6);
+            if (!Validate::isPrice($spByCountry->reduction)) {
+                $spByCountry->reduction = 0;
+            }
             if ($fieldsList === null) {
                 $fieldsList = array_keys($spByCountry->getFields());
                 $fieldsList = array_keys(array_intersect_key(get_object_vars($spByCountry), array_flip($fieldsList)));

@@ -16,12 +16,19 @@ function ap5_hideUnusedFields() {
 		// $('#form_content #step1 #related-product').addClass('ap5-admin-hide hide');
 	}
 	// PS 1.7
-	if (typeof(pm_advancedpack) != 'undefined') {
+	if (typeof (pm_advancedpack) !== 'undefined') {
 		$('div.form_step1_type_product').addClass('ap5-admin-hide hide');
 		$('li#tab_step3, li#tab_step2').addClass('ap5-admin-hide hide');
 		$('#form_content #step1 #show_variations_selector').addClass('ap5-admin-hide hide');
 		$('#form_content #step1 #form_step1_price_shortcut').parents('.form-group').addClass('ap5-admin-hide hide');
 		$('#form_content #step6 #custom_fields').parent(':not(#supplier_collection)').parent().addClass('ap5-admin-hide hide');
+		// Starting from PrestaShop 1.7, there is a check to see if a virtual product has combinations, which is forbidden.
+		// As we use combinations to manage the pack, we have to prevent this check in order to avoid accidental removal
+		// of our internal combinations, which would break the pack.
+		// If the pack has virtual tag, then prevent checkAccessVariations() to be run
+		if (pm_advancedpack.packIsVirtual) {
+			displayFieldsManager.checkAccessVariations = function () { };
+		}
 	}
 }
 
@@ -466,11 +473,9 @@ $(document).ready(function() {
 	// PS 1.7
 	if (typeof(pm_advancedpack) != 'undefined') {
 		$('#form_content .form-contenttab').removeClass('active');
-		newTabContent = $('#form_content .form-contenttab:eq(0)').clone().attr('id', 'pm_advancedpack').html(pm_advancedpack.tabContent);
+		newTabContent = $('#form_content .form-contenttab:eq(0)').clone().attr('id', 'pm_advancedpack').html('<div class="col-xs-12 col-12"><div class="spinner"></div></div>');
 		newTabContent.insertBefore('#form_content .form-contenttab:eq(0)');
-		if (typeof(jQuery.fn.pstooltip) != 'undefined') {
-			jQuery('[data-toggle="pstooltip"]', newTabContent).pstooltip();
-		}
+		ap5_getAdminNewPackOutput(pm_advancedpack.isRealNewPack);
 
 		$('#form-loading ul.js-nav-tabs li a').removeClass('active');
 		newTabItem = $('#form-loading ul.js-nav-tabs li:eq(0)').clone().attr('id', 'tab_pm_advancedpack');
@@ -487,6 +492,29 @@ $(document).ready(function() {
 		$('.product-page #product-images-dropzone').css('min-height', '175px');
 	}
 });
+
+function ap5_getAdminNewPackOutput(isRealNewPack) {
+	$.ajax({
+		type: "POST",
+		dataType: "json",
+		ajax: 1,
+		url: pm_advancedpack.moduleConfigureURL,
+		data: {
+			action: 'GetAdminNewPackOutput',
+			idProduct: parseInt($('#form_id_product').val()),
+			is_real_new_pack: (isRealNewPack ? 1 : 0),
+		},
+		cache: false,
+		success: function (jsonData, textStatus, jqXHR) {
+			if (typeof (jsonData.tabContent) !== 'undefined') {
+				$('#pm_advancedpack').html(jsonData.tabContent);
+				if (typeof(jQuery.fn.pstooltip) != 'undefined') {
+					jQuery('[data-toggle="pstooltip"]', newTabContent).pstooltip();
+				}
+			}
+		}
+	});
+}
 
 function ap5_getProductInformations(productId) {
 	return $.ajax({

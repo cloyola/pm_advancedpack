@@ -60,7 +60,7 @@
 						<td>
 							<label class="control-label" for="ap5_fixed_pack_price">
 								<span class="label-tooltip" data-toggle="tooltip" title="{l s='Enter a fixed amount for your pack' mod='pm_advancedpack'}">
-									{l s='Pack price' mod='pm_advancedpack'} - {if $idGroup == 3}{l s='Default group' mod='pm_advancedpack'}{else}{$groupName|escape:'html':'UTF-8'}{/if}<em class="ap5-fixed-pack-price-without-taxes{if $idTaxRulesGroup <= 0} ap5-admin-hide hide{/if}"> {l s='(without taxes)' mod='pm_advancedpack'}</em><em class="ap5-fixed-pack-price-with-taxes{if $idTaxRulesGroup !== 0 || is_null($idTaxRulesGroup)} ap5-admin-hide hide{/if}"> {l s='(with taxes)' mod='pm_advancedpack'}</em>
+									{l s='Pack price' mod='pm_advancedpack'} - {if $idGroup == $packIdGroupDefault}{l s='Default group' mod='pm_advancedpack'}{else}{$groupName|escape:'html':'UTF-8'}{/if}<em class="ap5-fixed-pack-price-without-taxes{if $idTaxRulesGroup <= 0} ap5-admin-hide hide{/if}"> {l s='(without taxes)' mod='pm_advancedpack'}</em><em class="ap5-fixed-pack-price-with-taxes{if $idTaxRulesGroup !== 0 || is_null($idTaxRulesGroup)} ap5-admin-hide hide{/if}"> {l s='(with taxes)' mod='pm_advancedpack'}</em>
 								</span>
 							</label>
 						</td>

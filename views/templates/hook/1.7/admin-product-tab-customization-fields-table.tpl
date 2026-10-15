@@ -1,3 +1,4 @@
+{strip}
 				{foreach from=$packProduct['productCustomizationFields'] item='productCustomizationField'}
 					{assign var=ap5_isSelected value=count($packProduct['productCustomizationFieldsWhiteList']) && in_array($productCustomizationField['id_customization_field'], $packProduct['productCustomizationFieldsWhiteList'])}
 				<tr id="ap5_combination-{$idProductPack}-{$productCustomizationField['id_customization_field']|intval}" class="nodrag nodrop">
@@ -12,3 +13,4 @@
 					<td>{if $productCustomizationField['required'] == 1}{l s='Yes' mod='pm_advancedpack'}{else}{l s='No' mod='pm_advancedpack'}{/if}</td>
 				</tr>
 				{/foreach}
+{/strip}

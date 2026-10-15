@@ -108,6 +108,7 @@ $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_0709d310d15b233ea0ad4b0ad
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_abecdde350f9815e0dcc9d9575c2e023'] = 'Estilos avançados (CSS)';
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_0574cebb2398e020c23ee9e264105472'] = 'Insira suas regras CSS aqui';
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_c9cc8cce247e49bae79f15173ce97354'] = 'Salvar';
+$_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_f37000f2e6b19c3dac81448ce83db842'] = 'Não foi possível gerar combinações de atributos de pacote para o pacote n°%d';
 $_MODULE['<{pm_advancedpack}prestashop>admin-add-pack-suggestion_27ad5b7366d13310250e85c697d6619a'] = 'Deseja adicionar um novo pacote?';
 $_MODULE['<{pm_advancedpack}prestashop>admin-add-pack-suggestion_594000001e2afac22679d89331e2e213'] = 'Acesse Catálogo> Pacotes, ou clique aqui';
 $_MODULE['<{pm_advancedpack}prestashop>new-version-detected_a16705c0f64fdca228ea6d704619c54d'] = 'Detectamos que você instalou uma nova versão do módulo em sua loja';

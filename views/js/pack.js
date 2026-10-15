@@ -240,6 +240,11 @@ $(document).on('keyup', 'input[name=qty], input.ap5-quantity-wanted', function(e
 });
 // Quantity change trigger for pack product
 $(document).on('change', 'input.ap5-quantity-wanted', function(e){
+	// Prevent wanted quantity to be > available quantity
+	if ($(this).data('available-quantity') && $(this).val() > $(this).data('available-quantity')) {
+		e.preventDefault();
+		$(this).val(parseInt($(this).data('available-quantity')));
+	}
 	ap5_updatePackTable();
 });
 // Quantity increment for pack product
@@ -300,12 +305,12 @@ $(document).ready(function() {	// Add classes to body
 	$('body').addClass('ap5-pack-page');
 });
 
-$(window).load(function() {
+$(window).on('load', function () {
 	ap5_initNewContent();
 
 	if (ap5_autoScrollBuyBlockEnabled) {
 		ap5_topLimit = $('form.ap5-buy-block').offset().top + parseFloat($('form.ap5-buy-block').css('marginTop').replace(/auto/, 0));
-		$(window).scroll(function() {
+		$(window).on('scroll', function () {
 			ap5_windowWidth = (navigator.userAgent.indexOf('Macintosh') > -1 && navigator.userAgent.indexOf('Safari/') > -1 ? $(window).width() : window.innerWidth);
 			var ap5_scrollTop = $(window).scrollTop();
 			var ap5_originalTop = parseFloat($('form.ap5-buy-block').css('top'));
@@ -346,7 +351,7 @@ $(window).load(function() {
 		$(window).trigger('scroll');
 	}
 
-	$(window).resize(function() {
+	$(window).on('resize', function () {
 		if (ap5_autoScrollBuyBlockEnabled)
 			ap5_topLimit = $('form.ap5-buy-block').offset().top + parseFloat($('form.ap5-buy-block').css('marginTop').replace(/auto/, 0));
 		ap5_applyProductListMinHeight($('#ap5-pack-product-tab-list li'), true, 'height');

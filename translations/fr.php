@@ -108,6 +108,7 @@ $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_0709d310d15b233ea0ad4b0ad
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_abecdde350f9815e0dcc9d9575c2e023'] = 'Styles Avancés (CSS)';
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_0574cebb2398e020c23ee9e264105472'] = 'Entrez ici vos règles CSS';
 $_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_c9cc8cce247e49bae79f15173ce97354'] = 'Sauvegarder';
+$_MODULE['<{pm_advancedpack}prestashop>pm_advancedpack_f37000f2e6b19c3dac81448ce83db842'] = 'Impossible de générer les déclinaisons pour le pack n°%d';
 $_MODULE['<{pm_advancedpack}prestashop>admin-add-pack-suggestion_27ad5b7366d13310250e85c697d6619a'] = 'Vous souhaitez ajouter un nouveau pack ?';
 $_MODULE['<{pm_advancedpack}prestashop>admin-add-pack-suggestion_594000001e2afac22679d89331e2e213'] = 'Rendez-vous dans l\'onglet Catalogue > Packs, ou bien cliquez ici';
 $_MODULE['<{pm_advancedpack}prestashop>new-version-detected_a16705c0f64fdca228ea6d704619c54d'] = 'Nous avons détecté l\'installation d\'une nouvelle version du module sur votre boutique';

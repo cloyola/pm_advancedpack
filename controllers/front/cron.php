@@ -2,8 +2,8 @@
 /**
  * Advanced Pack 5
  *
- * @author    Presta-Module.com <support@presta-module.com> - http://www.presta-module.com
- * @copyright Presta-Module 2019 - http://www.presta-module.com
+ * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
+ * @copyright Presta-Module - https://www.presta-module.com
  * @license   Commercial
  *
  *           ____     __  __
@@ -30,30 +30,11 @@ class pm_advancedpackcronModuleFrontController extends ModuleFrontController
         }
         header('X-Robots-Tag: noindex, nofollow', true);
         header('Content-type: application/json');
-        if (!Tools::isPHPCLI()) {
-            $secureKey = Configuration::getGlobalValue('PM_AP5_SECURE_KEY');
-            if (empty($secureKey) || $secureKey !== Tools::getValue('secure_key')) {
-                Tools::redirect('404');
-                die;
-            }
+        $secureKey = Configuration::getGlobalValue('PM_AP5_SECURE_KEY');
+        if (empty($secureKey) || $secureKey !== Tools::getValue('secure_key')) {
+            Tools::redirect('404');
+            die;
         }
-        set_time_limit(0);
-        $start_memory = memory_get_usage();
-        $time_start = microtime(true);
-        $idPackList = $this->module->getPackIdToUpdate();
-        foreach ($idPackList as $idPack) {
-            if (!AdvancedPack::clonePackAttributes($idPack)) {
-                throw new PrestaShopException(sprintf($this->l('Unable to generate pack attribute combinations for pack n°%d', $idPack)));
-            }
-            AdvancedPack::addPackSpecificPrice((int)$idPack, 0);
-        }
-        $this->module->cleanPackIdToUpdate();
-        die(Tools::jsonEncode(array(
-            'result' => true,
-            'source' => (Tools::isPHPCLI() ? 'cli' : 'web'),
-            'elasped_time' => round((microtime(true) - $time_start)*1000, 2),
-            'memory_usage' => round((memory_get_usage() - $start_memory)/1024/1024, 2),
-            'updated_packs' => count($idPackList),
-        )));
+        die(Tools::jsonEncode($this->module->runCron()));
     }
 }
