@@ -144,6 +144,56 @@ class AdvancedPack extends Product
             $quantity
         );
     }
+    /**
+     * PHP 8 ships a native class called "Attribute": the legacy PrestaShop class (renamed ProductAttribute in 8.x)
+     * can no longer be instantiated with new Attribute(...). Returns the right class for each version.
+     */
+    public static function newAttribute($idAttribute = null, $idLang = null)
+    {
+        $class = class_exists('ProductAttribute', false) || class_exists('ProductAttribute') ? 'ProductAttribute' : 'Attribute';
+        return $idLang === null ? new $class($idAttribute) : new $class($idAttribute, $idLang);
+    }
+    /**
+     * Compatibility helpers (PrestaShop 1.7 -> 8.x -> 9.x)
+     */
+    public static function psRound($value, $precision = 0, $roundMode = null)
+    {
+        // PHP 8 throws a TypeError on round('') / round('abc'): cast like PHP 7 did silently.
+        return Tools::ps_round((float)$value, (int)$precision, $roundMode);
+    }
+    public static function displayPrice($price, $currency = null)
+    {
+        $context = Context::getContext();
+        if (is_numeric($currency)) {
+            $currency = new Currency((int)$currency);
+        }
+        if (!is_object($currency) || empty($currency->iso_code)) {
+            $currency = $context->currency;
+        }
+        // Tools::displayPrice() has been removed in PrestaShop 9
+        if (method_exists($context, 'getCurrentLocale') && is_object($context->getCurrentLocale()) && is_object($currency)) {
+            return $context->getCurrentLocale()->formatPrice((float)$price, $currency->iso_code);
+        }
+        return Tools::displayPrice($price, $currency);
+    }
+    public static function dependsOnStock($idProduct)
+    {
+        // Advanced Stock Management has been removed from PrestaShop 9
+        return method_exists('StockAvailable', 'dependsOnStock') ? (bool)StockAvailable::dependsOnStock((int)$idProduct) : false;
+    }
+    public static function setProductDependsOnStock($idProduct, $dependsOnStock = false)
+    {
+        if (method_exists('StockAvailable', 'setProductDependsOnStock')) {
+            StockAvailable::setProductDependsOnStock((int)$idProduct, $dependsOnStock);
+        }
+    }
+    public static function getIdProductAttributeByAttributes($idProduct, $idAttributes)
+    {
+        if (method_exists('Product', 'getIdProductAttributesByIdAttributes')) {
+            return Product::getIdProductAttributesByIdAttributes($idProduct, $idAttributes);
+        }
+        return Product::getIdProductAttributeByIdAttributes($idProduct, $idAttributes);
+    }
     public static function getPackContent($idPack, $idProductAttribute = null, $withFrontDatas = false, $attributesList = array(), $quantityList = array())
     {
         $idLang = (int)self::getContext()->language->id;
@@ -274,12 +324,12 @@ class AdvancedPack extends Product
                     } else {
                         $packProduct['presentation'] = array();
                     }
-                    $packProduct['presentation']['productClassicPriceTotal'] = Tools::displayPrice($packProduct['productClassicPriceTotal']);
-                    $packProduct['presentation']['productClassicPriceTaxExclTotal'] = Tools::displayPrice($packProduct['productClassicPriceTaxExclTotal']);
-                    $packProduct['presentation']['productPackPriceTotal'] = Tools::displayPrice($packProduct['productPackPriceTotal']);
-                    $packProduct['presentation']['productPackPriceTaxExclTotal'] = Tools::displayPrice($packProduct['productPackPriceTaxExclTotal']);
-                    $packProduct['presentation']['productReductionAmountTotal'] = Tools::displayPrice($packProduct['productReductionAmountTotal']);
-                    $packProduct['presentation']['productReductionAmountTaxExclTotal'] = Tools::displayPrice($packProduct['productReductionAmountTaxExclTotal']);
+                    $packProduct['presentation']['productClassicPriceTotal'] = AdvancedPack::displayPrice($packProduct['productClassicPriceTotal']);
+                    $packProduct['presentation']['productClassicPriceTaxExclTotal'] = AdvancedPack::displayPrice($packProduct['productClassicPriceTaxExclTotal']);
+                    $packProduct['presentation']['productPackPriceTotal'] = AdvancedPack::displayPrice($packProduct['productPackPriceTotal']);
+                    $packProduct['presentation']['productPackPriceTaxExclTotal'] = AdvancedPack::displayPrice($packProduct['productPackPriceTaxExclTotal']);
+                    $packProduct['presentation']['productReductionAmountTotal'] = AdvancedPack::displayPrice($packProduct['productReductionAmountTotal']);
+                    $packProduct['presentation']['productReductionAmountTaxExclTotal'] = AdvancedPack::displayPrice($packProduct['productReductionAmountTaxExclTotal']);
                     $packProduct['attributes'] = false;
                     if ($idProductAttribute) {
                         $packProduct['attributes'] = self::_getProductAttributesGroups($packProduct['productObj'], (int)$idProductAttribute, self::getProductAttributeWhiteList($packProduct['id_product_pack']), (int)$idLang);
@@ -464,8 +514,8 @@ class AdvancedPack extends Product
                     if ($packReductionType == 'amount') {
                         $packReductionAmount = Tools::convertPrice($packReductionAmount, self::getContext()->currency);
                         $packProduct['reduction_amount'] = $packReductionAmount;
-                        $productPackPrice -= Tools::ps_round($packReductionAmount, 6);
-                        $productPackPriceWt -= Tools::ps_round($useTax ? $productTaxCalculator->addTaxes($packReductionAmount) : $packReductionAmount, 6);
+                        $productPackPrice -= AdvancedPack::psRound($packReductionAmount, 6);
+                        $productPackPriceWt -= AdvancedPack::psRound($useTax ? $productTaxCalculator->addTaxes($packReductionAmount) : $packReductionAmount, 6);
                     } elseif ($packReductionType == 'percentage') {
                         $productPackPrice *= (1 - $packReductionAmount);
                         $productPackPriceWt *= (1 - $packReductionAmount);
@@ -535,8 +585,8 @@ class AdvancedPack extends Product
                         }
                     }
                     if ($packReductionType == 'amount') {
-                        $packProduct['priceInfos']['reductionAmountWt'] = Tools::ps_round($useTax ? $productTaxCalculator->addTaxes($packReductionAmount) : $packReductionAmount, 6);
-                        $packProduct['priceInfos']['reductionAmount'] = Tools::ps_round($packReductionAmount, 6);
+                        $packProduct['priceInfos']['reductionAmountWt'] = AdvancedPack::psRound($useTax ? $productTaxCalculator->addTaxes($packReductionAmount) : $packReductionAmount, 6);
+                        $packProduct['priceInfos']['reductionAmount'] = AdvancedPack::psRound($packReductionAmount, 6);
                     } else {
                         $packProduct['priceInfos']['reductionAmountWt'] = 0;
                         $packProduct['priceInfos']['reductionAmount'] = 0;
@@ -547,23 +597,23 @@ class AdvancedPack extends Product
                         $taxManager = TaxManagerFactory::getManager($address, Product::getIdTaxRulesGroupByIdProduct((int)$packProduct['id_product']));
                         $productTaxCalculator = $taxManager->getTaxCalculator();
                         if ($packIdTaxRulesGroup) {
-                            $packProduct['priceInfos']['productPackPriceWt'] = Tools::ps_round((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
+                            $packProduct['priceInfos']['productPackPriceWt'] = AdvancedPack::psRound((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
+                            $packProduct['priceInfos']['productPackPrice'] = AdvancedPack::psRound((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithoutTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
                         } else {
-                            $packProduct['priceInfos']['productPackPriceWt'] = Tools::ps_round((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
-                            $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
+                            $packProduct['priceInfos']['productPackPriceWt'] = AdvancedPack::psRound((($packProduct['priceInfos']['productPackPriceWt'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
+                            $packProduct['priceInfos']['productPackPrice'] = AdvancedPack::psRound((($packProduct['priceInfos']['productPackPrice'] * (int)$packProduct['quantity']) / $totalClassicPriceWithTaxes) * $packFixedPrice, 6) / (int)$packProduct['quantity'];
                         }
                     }
                 } else {
                     foreach ($packContent as &$packProduct) {
-                        $packProduct['priceInfos']['productPackPrice'] = Tools::ps_round($packProduct['priceInfos']['productPackPrice'], 6);
-                        $packProduct['priceInfos']['productPackPriceWt'] = Tools::ps_round($packProduct['priceInfos']['productPackPriceWt'], 6);
-                        $packProduct['priceInfos']['productClassicPrice'] = Tools::ps_round($packProduct['priceInfos']['productClassicPrice'], 6);
-                        $packProduct['priceInfos']['productClassicPriceWt'] = Tools::ps_round($packProduct['priceInfos']['productClassicPriceWt'], 6);
-                        $packProduct['priceInfos']['taxesClassic'] = Tools::ps_round($packProduct['priceInfos']['taxesClassic'], 6);
-                        $packProduct['priceInfos']['taxesPack'] = Tools::ps_round($packProduct['priceInfos']['taxesPack'], 6);
-                        $packProduct['priceInfos']['productEcoTax'] = Tools::ps_round($packProduct['priceInfos']['productEcoTax'], 6);
-                        $packProduct['priceInfos']['productEcoTaxWt'] = Tools::ps_round($packProduct['priceInfos']['productEcoTaxWt'], 6);
+                        $packProduct['priceInfos']['productPackPrice'] = AdvancedPack::psRound($packProduct['priceInfos']['productPackPrice'], 6);
+                        $packProduct['priceInfos']['productPackPriceWt'] = AdvancedPack::psRound($packProduct['priceInfos']['productPackPriceWt'], 6);
+                        $packProduct['priceInfos']['productClassicPrice'] = AdvancedPack::psRound($packProduct['priceInfos']['productClassicPrice'], 6);
+                        $packProduct['priceInfos']['productClassicPriceWt'] = AdvancedPack::psRound($packProduct['priceInfos']['productClassicPriceWt'], 6);
+                        $packProduct['priceInfos']['taxesClassic'] = AdvancedPack::psRound($packProduct['priceInfos']['taxesClassic'], 6);
+                        $packProduct['priceInfos']['taxesPack'] = AdvancedPack::psRound($packProduct['priceInfos']['taxesPack'], 6);
+                        $packProduct['priceInfos']['productEcoTax'] = AdvancedPack::psRound($packProduct['priceInfos']['productEcoTax'], 6);
+                        $packProduct['priceInfos']['productEcoTaxWt'] = AdvancedPack::psRound($packProduct['priceInfos']['productEcoTaxWt'], 6);
                     }
                 }
             }
@@ -1491,7 +1541,7 @@ class AdvancedPack extends Product
             } else {
                 $uniqueId = uniqid();
             }
-            $attributeObj = new Attribute();
+            $attributeObj = self::newAttribute();
             $attributeObj->id_attribute_group = self::getPackAttributeGroupId();
             foreach (Language::getLanguages(false) as $lang) {
                 $attributeObj->name[$lang['id_lang']] = $uniqueId;
@@ -1892,7 +1942,7 @@ class AdvancedPack extends Product
         $coverImage->position = Image::getHighestPosition($idPack) + 1;
         if ($coverImage->add() && ($new_path = $coverImage->getPathForCreation()) && ImageManager::resize($defaultPackImagePath, $new_path.'.'.$coverImage->image_format)) {
             foreach (ImageType::getImagesTypes('products') as $imageType) {
-                $res &= ImageManager::resize($defaultPackImagePath, $new_path.'-'.Tools::stripslashes($imageType['name']).'.'.$coverImage->image_format, $imageType['width'], $imageType['height'], $coverImage->image_format);
+                $res &= ImageManager::resize($defaultPackImagePath, $new_path.'-'.stripslashes($imageType['name']).'.'.$coverImage->image_format, $imageType['width'], $imageType['height'], $coverImage->image_format);
             }
         }
         if (AdvancedPackCoreClass::_isFilledArray($packProducts)) {
@@ -2102,8 +2152,8 @@ class AdvancedPack extends Product
                                                     $cartProduct['attributes'] = $moduleInstance->displayPackContent($cartProduct['id'], $cartProduct['idCombination'], pm_advancedpack::PACK_CONTENT_BLOCK_CART);
                                                     if ($hasPackUsingDifferentVAT && (int)Group::getCurrent()->price_display_method) {
                                                         $cartProduct['price_float'] = $cartProduct['quantity'] * AdvancedPack::getPackPrice((int)$cartProduct['id'], false, true, true, 6, AdvancedPack::getIdProductAttributeListByIdPack((int)$cartProduct['id'], (int)$cartProduct['idCombination']), array(), array(), true);
-                                                        $cartProduct['price'] = Tools::displayPrice($cartProduct['price_float'], $context->currency);
-                                                        $cartProduct['priceByLine'] = Tools::displayPrice($cartProduct['price_float'], $context->currency);
+                                                        $cartProduct['price'] = AdvancedPack::displayPrice($cartProduct['price_float'], $context->currency);
+                                                        $cartProduct['priceByLine'] = AdvancedPack::displayPrice($cartProduct['price_float'], $context->currency);
                                                     }
                                                     if (!$fromProductController && $cartProduct['idCombination'] == $idProductAttribute) {
                                                         $cartProduct['idCombination'] = Product::getDefaultAttribute((int)$cartProduct['id']);
@@ -2122,8 +2172,8 @@ class AdvancedPack extends Product
                                                             $cartProduct['price_wt'] = AdvancedPack::getPackPrice((int)$cartProduct['id_product'], false, true, true, 6, AdvancedPack::getIdProductAttributeListByIdPack((int)$cartProduct['id_product'], (int)$cartProduct['id_product_attribute']), array(), array(), true);
                                                         }
                                                     }
-                                                    $jsonCartContent['productTotal'] = Tools::displayPrice($newCartSummary['total_products'] - $summaryTotal, $context->currency);
-                                                    $jsonCartContent['total'] = Tools::displayPrice($context->cart->getOrderTotal(false) - $summaryTotal, $context->currency);
+                                                    $jsonCartContent['productTotal'] = AdvancedPack::displayPrice($newCartSummary['total_products'] - $summaryTotal, $context->currency);
+                                                    $jsonCartContent['total'] = AdvancedPack::displayPrice($context->cart->getOrderTotal(false) - $summaryTotal, $context->currency);
                                                 }
                                             }
                                             $jsonCartContent['ap5Data'] = array('idProductAttribute' => $idProductAttribute);
@@ -2251,7 +2301,7 @@ class AdvancedPack extends Product
                         if (Validate::isLoadedObject($packProductObject)) {
                             $jsonCartContent['fakeAp5Product'] = array(
                                 'name' => $packProductObject->name,
-                                'price' => Tools::displayPrice($totalPackPrice),
+                                'price' => AdvancedPack::displayPrice($totalPackPrice),
                                 'quantity' => (int)$quantity,
                                 'image' => (!empty($packCover['id_image']) ? $context->link->getImageLink($packProductObject->link_rewrite, $packCover['id_image'], implode('_', array('home', 'default'))) : ''),
                                 'hasAttributes' => true,
@@ -2675,8 +2725,8 @@ class AdvancedPack extends Product
                     }
                 }
             }
-            $spByCountry->price = Tools::ps_round($spByCountry->price, 6);
-            $spByCountry->reduction = Tools::ps_round($spByCountry->reduction, 6);
+            $spByCountry->price = AdvancedPack::psRound($spByCountry->price, 6);
+            $spByCountry->reduction = AdvancedPack::psRound($spByCountry->reduction, 6);
             if (!Validate::isPrice($spByCountry->reduction)) {
                 $spByCountry->reduction = 0;
             }
@@ -3027,7 +3077,7 @@ class AdvancedPack extends Product
                         SELECT `id_attribute`
                         FROM `'._DB_PREFIX_.'product_attribute_combination`
                         WHERE `id_product_attribute` = '.(int)$idProductAttribute);
-                    $attributeObj = new Attribute($idAttribute);
+                    $attributeObj = self::newAttribute($idAttribute);
                     $validPackAttributeGroup = (Validate::isLoadedObject($attributeObj) && $attributeObj->id_attribute_group == self::getPackAttributeGroupId());
                     if ($validPackAttributeGroup) {
                         Db::getInstance()->delete('attribute_shop', '`id_attribute` = '.(int)$idAttribute);

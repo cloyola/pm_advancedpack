@@ -95,12 +95,12 @@ class pm_advancedpackupdate_cartModuleFrontController extends ModuleFrontControl
                         if (AdvancedPack::isValidPack($product['id']) && $product['idCombination'] && !AdvancedPack::getPackIdTaxRulesGroup($product['id'])) {
                             $packPrice = AdvancedPack::getPackPrice((int)$product['id'], false, true, true, 6, AdvancedPack::getIdProductAttributeListByIdPack((int)$product['id'], (int)$product['idCombination']), array(), array(), true);
                             $product['price_float'] = $product['quantity'] * $packPrice;
-                            $product['price'] = Tools::displayPrice($product['price_float'], $this->context->currency);
-                            $product['priceByLine'] = Tools::displayPrice($product['price_float'], $this->context->currency);
+                            $product['price'] = AdvancedPack::displayPrice($product['price_float'], $this->context->currency);
+                            $product['priceByLine'] = AdvancedPack::displayPrice($product['price_float'], $this->context->currency);
                         }
                     }
-                    $this->jsonOutput['productTotal'] = Tools::displayPrice($newCartSummary['total_products'], $this->context->currency);
-                    $this->jsonOutput['total'] = Tools::displayPrice($this->context->cart->getOrderTotal(false) - $summaryTotal, $this->context->currency);
+                    $this->jsonOutput['productTotal'] = AdvancedPack::displayPrice($newCartSummary['total_products'], $this->context->currency);
+                    $this->jsonOutput['total'] = AdvancedPack::displayPrice($this->context->cart->getOrderTotal(false) - $summaryTotal, $this->context->currency);
                 }
             }
             if ($this->hasPackInCart || $this->hasClassicPackInCart) {
