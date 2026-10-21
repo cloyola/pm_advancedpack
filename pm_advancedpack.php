@@ -5,7 +5,7 @@
  * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
  * @copyright Presta-Module 2022 - https://www.presta-module.com
  * @license   Commercial
- * @version   5.2.20
+ * @version   5.2.21
  *
  *           ____     __  __
  *          |  _ \   |  \/  |
@@ -169,7 +169,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
         $this->module_key = '7e2464eca3e8dc2d1a5a7e93da1d82b4';
         $this->author = 'Presta-Module';
         $this->tab = 'pricing_promotion';
-        $this->version = '5.2.20';
+        $this->version = '5.2.21';
         $this->displayName = 'Advanced Pack';
         $this->bootstrap = true;
         $this->description = $this->l('Add a product bundling strategy into your store, sell more !');
@@ -3395,12 +3395,12 @@ public function registerNewHooks($previous_version, $version)
                             array(
                               'id'    => 'active_on',
                               'value' => true,
-                              'label' => $this->l('Simple'),
+                              'label' => $this->l('Advanced'),
                             ),
                             array(
                               'id'    => 'active_off',
                               'value' => false,
-                              'label' => $this->l('Advanced'),
+                              'label' => $this->l('Simple'),
                             ),
                         ),
                     ),
