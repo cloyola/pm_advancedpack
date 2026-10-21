@@ -5,7 +5,7 @@
  * @author    Presta-Module.com <support@presta-module.com> - https://www.presta-module.com
  * @copyright Presta-Module 2022 - https://www.presta-module.com
  * @license   Commercial
- * @version   5.2.21
+ * @version   5.2.22
  *
  *           ____     __  __
  *          |  _ \   |  \/  |
@@ -169,7 +169,7 @@ class pm_advancedpack extends AdvancedPackCoreClass
         $this->module_key = '7e2464eca3e8dc2d1a5a7e93da1d82b4';
         $this->author = 'Presta-Module';
         $this->tab = 'pricing_promotion';
-        $this->version = '5.2.21';
+        $this->version = '5.2.22';
         $this->displayName = 'Advanced Pack';
         $this->bootstrap = true;
         $this->description = $this->l('Add a product bundling strategy into your store, sell more !');
@@ -1150,6 +1150,16 @@ public function registerNewHooks($previous_version, $version)
     {
         $config = $this->_getModuleConfiguration();
         $product = $this->getCurrentProduct();
+        if (Tools::getValue('ap5_debug') && !headers_sent()) {
+            $ap5Dbg = 'hook=1;controller=' . (is_object($this->context->controller) ? get_class($this->context->controller) : 'none')
+                . ';product=' . (Validate::isLoadedObject($product) ? (int)$product->id : 'none')
+                . ';isPack=' . (Validate::isLoadedObject($product) ? (int)AdvancedPack::isValidPack($product->id) : 'n/a')
+                . ';mode=' . $config['displayMode']
+                . ';tplDir=' . $this->getTemplateVersionDir()
+                . ';layout=' . (is_object($this->context->controller) && method_exists($this->context->controller, 'getLayout') ? $this->context->controller->getLayout() : 'n/a')
+                . ';action=' . (string)Tools::getValue('action');
+            header('X-AP5-Debug: ' . $ap5Dbg);
+        }
         if (version_compare(_PS_VERSION_, '1.7.0.0', '>=') && isset($params['controller']) && $params['controller'] instanceof OrderConfirmationController) {
             $idCart = (int)Tools::getValue('id_cart', 0);
             $order = new Order(Order::getIdByCartId((int)$idCart));
