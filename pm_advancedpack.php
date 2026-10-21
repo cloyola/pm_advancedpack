@@ -1988,18 +1988,16 @@ class pm_advancedpack extends AdvancedPackCoreClass
     {
         AdvancedPack::removeOldPackData();
         if (AdvancedPack::getPackAttributeGroupId() !== false) {
-            $sql = new DbQuery();
-            $sql->select('a.`id_attribute`, pac.`id_product_attribute`');
-            $sql->from('product_attribute_combination', 'pac');
-            $sql->innerJoin('attribute', 'a', 'a.`id_attribute` = pac.`id_attribute` AND a.`id_attribute_group` = ' . (int)AdvancedPack::getPackAttributeGroupId());
+            $sql = new DbQuery();$sql->select('a.`id_attribute`, pac.`id_product_attribute`');
+            $sql->from('product_attribute_combination', 'pac');$sql->innerJoin('attribute', 'a', 'a.`id_attribute` = pac.`id_attribute` AND a.`id_attribute_group` = ' . (int)AdvancedPack::getPackAttributeGroupId());
             $sql->innerJoin('attribute_lang', 'al', 'a.`id_attribute` = al.`id_attribute` AND al.`id_lang`=' . (int)$this->context->language->id . ' AND al.`name` NOT LIKE "%-defaultCombination"');
             $sql->leftJoin('cart_product', 'cp', 'cp.`id_product_attribute` = pac.`id_product_attribute`');
             $sql->where('cp.`id_product_attribute` IS NULL');
             $idAttributeList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
             if (self::_isFilledArray($idAttributeList)) {
-                foreach ($idAttributeList as $attributeRow) {
-                    $attribute = new Attribute((int)$attributeRow['id_attribute'], $this->context->language->id);
-                    if (Validate::isLoadedObject($attribute) && !preg_match('/[0-9]+-defaultCombination/', $attribute->name)) {
+                foreach ($idAttributeList as$attributeRow) {
+                    $attribute = new Attribute((int)$attributeRow['id_attribute']);
+                    if (Validate::isLoadedObject($attribute) && !preg_match('/[0-9]+-defaultCombination/', $attribute->name[(int)$this->context->language->id])) {
                         Db::getInstance()->delete('attribute_shop', '`id_attribute` = '.(int)$attribute->id);
                         if (!empty($attributeRow['id_product_attribute'])) {
                             Db::getInstance()->delete('product_attribute_shop', '`id_product_attribute` = '.(int)$attributeRow['id_product_attribute']);
@@ -2008,9 +2006,8 @@ class pm_advancedpack extends AdvancedPackCoreClass
                     }
                     if (!empty($attributeRow['id_product_attribute'])) {
                         $combination = new Combination((int)$attributeRow['id_product_attribute']);
-                        if (Validate::isLoadedObject($combination) && (!Validate::isLoadedObject($attribute) || (Validate::isLoadedObject($attribute) && !preg_match('/[0-9]+-defaultCombination/', $attribute->name)))) {
-                            Db::getInstance()->delete('product_attribute_shop', '`id_product_attribute` = '.(int)$attributeRow['id_product_attribute']);
-                            $combination->delete();
+                        if (Validate::isLoadedObject($combination) && (!Validate::isLoadedObject($attribute) || (Validate::isLoadedObject($attribute) && !preg_match('/[0-9]+-defaultCombination/', $attribute->name[(int)$this->context->language->id])))) {
+                            Db::getInstance()->delete('product_attribute_shop', '`id_product_attribute` = '.(int)$attributeRow['id_product_attribute']);$combination->delete();
                         }
                     }
                 }

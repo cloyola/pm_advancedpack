@@ -37,7 +37,7 @@ $(document).ready(function() {
 </script>
 
 {if isset($ap5_firstExecution) && $ap5_firstExecution}
-{if $product|is_array}
+{if is_array($product)}
 	{assign var="ap5ProductID" value=$product.id}
 {else}
 	{assign var="ap5ProductID" value=$product->id}
