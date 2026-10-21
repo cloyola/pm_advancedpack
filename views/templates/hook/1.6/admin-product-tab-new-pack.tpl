@@ -182,10 +182,10 @@
 	ap5_productListUrl = '{$link->getAdminLink('AdminModules')}&configure=pm_advancedpack&adminProductList';
 	ap5_updateUrl = '{$link->getAdminLink('AdminModules')}&configure=pm_advancedpack&adminPackContentUpdate';
 	ap5_deleteConfirmationMessage = '{l s='Do you really want to delete this product from the pack?' mod='pm_advancedpack' js=1}';
-	ap5_packIdTaxRulesGroup = {json_encode($idTaxRulesGroup)};
+	ap5_packIdTaxRulesGroup = {$idTaxRulesGroup|json_encode nofilter};
 	ap5_warehouseMessage = '{l s='You can\'t have different warehouse into the pack, please choose another product in order to continue.' mod='pm_advancedpack' js=1}';
-	ap5_packIdWarehouse = {json_encode($idWarehouse)};
-	ap5_displayMode = {json_encode($packDisplayMode)};
+	ap5_packIdWarehouse = {$idWarehouse|json_encode nofilter};
+	ap5_displayMode = {$packDisplayMode|json_encode nofilter};
 	ap5_atLeastOneCombinationMessage = '{l s='You must have at least one selected combination.' mod='pm_advancedpack' js=1}';
 	ap5_atLeastTwoProductMessage = '{l s='Do you really want to create a pack with only one product inside ?' mod='pm_advancedpack' js=1}';
 	ap5_atLeastOneProductMessage = '{l s='You must have at least one product into the pack.' mod='pm_advancedpack' js=1}';

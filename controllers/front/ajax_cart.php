@@ -42,20 +42,20 @@ class pm_advancedpackajax_cartModuleFrontController extends CartController
                             $newPriceWt = AdvancedPack::getPackPrice((int)$product['id_product'], true, true, true, 6, AdvancedPack::getIdProductAttributeListByIdPack((int)$product['id_product'], (int)$product['id_product_attribute']), array(), array(), true);
                             if ($psTaxDisplay) {
                                 $presented_cart['subtotals']['tax']['amount'] += (int)$product['cart_quantity'] * ($newPriceWt - $newPrice);
-                                $presented_cart['subtotals']['tax']['value'] = Tools::displayPrice($presented_cart['subtotals']['tax']['amount']);
+                                $presented_cart['subtotals']['tax']['value'] = AdvancedPack::displayPrice($presented_cart['subtotals']['tax']['amount']);
                                 $presented_cart['totals']['total_excluding_tax']['amount'] -= (int)$product['cart_quantity'] * ($newPriceWt - $newPrice);
-                                $presented_cart['totals']['total_excluding_tax']['value'] = Tools::displayPrice($presented_cart['totals']['total_excluding_tax']['amount']);
+                                $presented_cart['totals']['total_excluding_tax']['value'] = AdvancedPack::displayPrice($presented_cart['totals']['total_excluding_tax']['amount']);
                                 $product['price_with_reduction_without_tax'] = $newPrice;
                             }
                             if ($groupPriceDisplayMethod) {
-                                $product['price'] = Tools::displayPrice($newPrice);
+                                $product['price'] = AdvancedPack::displayPrice($newPrice);
                                 $product['price_wt'] = $newPriceWt;
-                                $product['total'] = Tools::displayPrice((int)$product['cart_quantity']  * $newPrice);
+                                $product['total'] = AdvancedPack::displayPrice((int)$product['cart_quantity']  * $newPrice);
                                 $product['total_wt'] = ((int)$product['cart_quantity'] * $newPriceWt);
                             }
                             if ($groupPriceDisplayMethod) {
                                 $presented_cart['totals']['total']['amount'] += ((int)$product['cart_quantity'] * $newPrice);
-                                $presented_cart['totals']['total']['value'] = Tools::displayPrice($presented_cart['totals']['total']['amount']);
+                                $presented_cart['totals']['total']['value'] = AdvancedPack::displayPrice($presented_cart['totals']['total']['amount']);
                             }
                         } else {
                             $idProductAttributeList = AdvancedPack::getIdProductAttributeListByIdPack((int)$product['id_product'], (int)$product['id_product_attribute']);
@@ -65,21 +65,21 @@ class pm_advancedpackajax_cartModuleFrontController extends CartController
                                 if ($psTaxDisplay) {
                                     $diffTaxes = (AdvancedPack::getPackEcoTax((int)$product['id_product'], $idProductAttributeList) - AdvancedPack::getPackEcoTax((int)$product['id_product'], $idProductAttributeList, $packIdTaxRulesGroup));
                                     $presented_cart['subtotals']['tax']['amount'] -= (int)$product['cart_quantity'] * ($diffTaxes);
-                                    $presented_cart['subtotals']['tax']['value'] = Tools::displayPrice($presented_cart['subtotals']['tax']['amount']);
+                                    $presented_cart['subtotals']['tax']['value'] = AdvancedPack::displayPrice($presented_cart['subtotals']['tax']['amount']);
                                 }
                                 $presented_cart['totals']['total']['amount'] -= ((int)$product['cart_quantity'] * $product['price_with_reduction_without_tax']);
                                 $presented_cart['totals']['total_excluding_tax']['amount'] -= ((int)$product['cart_quantity'] * $product['price_with_reduction_without_tax']);
                                 $presented_cart['subtotals']['products']['amount'] -= ((int)$product['cart_quantity'] * $product['price_with_reduction_without_tax']);
-                                $product['price'] = Tools::displayPrice($newPrice);
+                                $product['price'] = AdvancedPack::displayPrice($newPrice);
                                 $product['price_wt'] = $newPriceWt;
-                                $product['total'] = Tools::displayPrice((int)$product['cart_quantity']  * $newPrice);
+                                $product['total'] = AdvancedPack::displayPrice((int)$product['cart_quantity']  * $newPrice);
                                 $product['total_wt'] = ((int)$product['cart_quantity'] * $newPriceWt);
                                 $presented_cart['totals']['total']['amount'] += ((int)$product['cart_quantity'] * $newPrice);
                                 $presented_cart['totals']['total_excluding_tax']['amount'] += ((int)$product['cart_quantity'] * $newPrice);
                                 $presented_cart['subtotals']['products']['amount'] += ((int)$product['cart_quantity'] * $newPrice);
-                                $presented_cart['totals']['total']['value'] = Tools::displayPrice($presented_cart['totals']['total']['amount']);
-                                $presented_cart['totals']['total_excluding_tax']['value'] = Tools::displayPrice($presented_cart['totals']['total_excluding_tax']['amount']);
-                                $presented_cart['subtotals']['products']['value'] = Tools::displayPrice($presented_cart['subtotals']['products']['amount']);
+                                $presented_cart['totals']['total']['value'] = AdvancedPack::displayPrice($presented_cart['totals']['total']['amount']);
+                                $presented_cart['totals']['total_excluding_tax']['value'] = AdvancedPack::displayPrice($presented_cart['totals']['total_excluding_tax']['amount']);
+                                $presented_cart['subtotals']['products']['value'] = AdvancedPack::displayPrice($presented_cart['subtotals']['products']['amount']);
                             }
                         }
                     }
